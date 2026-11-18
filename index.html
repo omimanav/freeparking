@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>NZ Free Parking</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header>
+  <nav id="cities" aria-label="City"></nav>
+  <span id="updated"></span>
+  <button id="locate" hidden>Locate me</button>
+  <button id="theme">Auto</button>
+</header>
+<main>
+  <div id="map"></div>
+  <aside id="list" aria-label="Parking list"></aside>
+</main>
+<footer>
+  <span><i style="background:#1fa24a"></i>Free now</span>
+  <span><i style="background:#1a73e8"></i>Time limit</span>
+  <span><i style="background:#d93025"></i>Paid / restricted</span>
+  <span><i style="background:#8e8e93"></i>Rules unknown</span>
+</footer>
+<div id="tip" hidden></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
