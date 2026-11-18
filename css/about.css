@@ -1,0 +1,35 @@
+.about-page{height:auto;min-height:100%;line-height:1.65}
+.about-header{padding:12px clamp(16px,4vw,48px);gap:16px}
+.about-brand{font-weight:700;color:var(--fg);text-decoration:none;letter-spacing:-.02em}
+.about-header .page-nav{margin-left:auto}
+.about-main{display:block;flex:1 0 auto;width:min(100%,1040px);margin:0 auto;padding:44px 28px 64px}
+.about-intro{max-width:740px}
+.about-eyebrow{margin:0 0 8px;font-size:12px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.about-intro h1{font-size:clamp(32px,5vw,48px);line-height:1.15;letter-spacing:-.04em;margin:0 0 18px}
+.about-lead{font-size:19px;color:var(--mute);margin:0 0 20px;max-width:680px}
+.about-map-link{display:inline-block;font-weight:650;text-decoration:none}
+.about-page main a{color:var(--link);text-underline-offset:3px}
+.about-toc{display:flex;flex-wrap:wrap;gap:8px 22px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;margin:32px 0 36px;font-size:14px}
+.about-toc a{text-decoration:none}
+.about-content{max-width:780px}
+.about-content section{scroll-margin-top:20px;margin-top:36px}
+.about-content section:first-child{margin-top:0}
+.about-content h2{font-size:24px;line-height:1.3;letter-spacing:-.025em;margin:0 0 14px}
+.about-content h3{font-size:17px;line-height:1.4;margin:24px 0 8px}
+.about-content p{margin:0 0 16px}
+.about-steps,.about-source-list{padding-left:23px;margin:12px 0 18px}
+.about-steps li,.about-source-list li{padding-left:4px;margin-bottom:10px}
+.about-table-wrap{max-width:100%;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:20px 0}
+.about-table{width:100%;border-collapse:collapse;text-align:left;font-size:14px;line-height:1.6}
+.about-table caption{text-align:left;padding:12px 16px;background:var(--card);font-weight:650}
+.about-table th,.about-table td{padding:14px 16px;border-top:1px solid var(--line);vertical-align:top}
+.about-table thead th{font-size:12px;color:var(--mute);font-weight:650}
+.about-table tbody th{width:172px;font-weight:600}
+.about-key{display:flex;gap:8px;align-items:baseline}
+.about-dot{display:inline-block;width:12px;height:12px;border:1px solid rgba(0,0,0,.15);border-radius:50%;flex:none}
+.about-dot-green{background:#1fa24a}.about-dot-blue{background:#1a73e8}.about-dot-red{background:#d93025}.about-dot-grey{background:#8e8e93}
+.about-footer{justify-content:space-between;flex-wrap:wrap;padding:18px clamp(16px,4vw,48px);gap:8px 24px;font-size:12px}
+@media(max-width:600px){.about-header{gap:10px;padding:12px 16px}.about-header .page-nav{gap:2px}.about-header button{padding:6px 10px}.about-main{padding:30px 18px 44px}.about-lead{font-size:17px}.about-toc{gap:10px 18px;margin:26px 0 30px}.about-content h2{font-size:22px}.about-table th,.about-table td{padding:11px 10px}.about-table tbody th{width:112px}.about-key{gap:6px}.about-footer{padding:16px 18px}}
+@media(max-width:360px){.about-header .about-brand{flex-basis:100%}.about-header .page-nav{margin-left:0}.about-header #theme{margin-left:auto}}
+
+@media(max-width:600px){.about-footer{padding:10px 18px;gap:6px 12px;font-size:11px;line-height:1.5}.about-footer>span:first-child{display:none}}

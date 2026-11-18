@@ -5,26 +5,55 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>NZ Free Parking</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<header>
+<header class="map-header">
   <nav id="cities" aria-label="City"></nav>
-  <span id="updated"></span>
-  <button id="locate" hidden>Locate me</button>
-  <button id="theme">Auto</button>
+  <span id="updated" role="status"></span>
+  <button id="locate" type="button" hidden>Locate me</button>
+  <details class="map-settings" id="map-settings">
+    <summary>Map options <span class="map-settings-chevron" aria-hidden="true">⌄</span></summary>
+    <div class="map-settings-panel">
+      <label class="basemap-label" for="basemap">Base map <select id="basemap" disabled></select></label>
+      <details class="overlay-control" id="overlay-control"><summary>Parking layers</summary><fieldset class="overlay-options" id="overlay-options"><legend>Visible parking layers</legend></fieldset></details>
+      <div class="settings-theme"><span class="settings-theme-label">Appearance</span><button id="theme" type="button" aria-label="Change colour theme">Auto</button></div>
+      <nav class="page-nav" aria-label="Pages"><a href="index.html" aria-current="page">Map</a><a href="about.html">About</a></nav>
+    </div>
+  </details>
 </header>
 <main>
   <div id="map"></div>
-  <aside id="list" aria-label="Parking list"></aside>
+  <aside id="list" aria-label="Parking locations and areas"><div id="source-status" class="source-alert" role="status" hidden></div><div id="parking-rows"></div></aside>
 </main>
-<footer>
-  <span><i style="background:#1fa24a"></i>Free now</span>
-  <span><i style="background:#1a73e8"></i>Time limit</span>
-  <span><i style="background:#d93025"></i>Paid / restricted</span>
-  <span><i style="background:#8e8e93"></i>Rules unknown</span>
+<footer class="map-footer">
+  <details class="map-info" id="map-info">
+    <summary>Legend &amp; info <span class="map-info-chevron" aria-hidden="true">⌃</span></summary>
+    <div class="map-info-panel" id="map-info-panel">
+      <ul class="parking-legend area-legend" aria-label="Parking area colours">
+        <li><i style="background:#c0392b" aria-hidden="true"></i>Paid zone</li>
+        <li><i style="background:#b76a00" aria-hidden="true"></i>Loading zone</li>
+        <li><i style="background:#687b8a" aria-hidden="true"></i>Car-park footprint</li>
+      </ul>
+      <ul class="parking-legend" aria-label="Parking colours">
+        <li><i style="background:#1fa24a" aria-hidden="true"></i>Free now</li>
+        <li><i style="background:#1a73e8" aria-hidden="true"></i>Time limit</li>
+        <li><i style="background:#d93025" aria-hidden="true"></i>Paid / restricted</li>
+        <li><i style="background:#8e8e93" aria-hidden="true"></i>Rules unknown</li>
+      </ul>
+      <p class="map-info-note">Areas show official zones or footprints. Rules and access may be unverified; unmapped places are not automatically free.</p>
+      <p class="map-info-links"><a href="https://creativecommons.org/licenses/by/4.0/">Data licence: CC BY 4.0</a><a href="about.html">About this map</a></p>
+    </div>
+  </details>
+  <span id="renderer" role="status">Starting map&hellip;</span>
+  <span class="map-data-credit"><a href="https://catalogue.data.govt.nz/dataset/car-parking60" aria-label="Parking data: Auckland Transport">AT</a><span aria-hidden="true"> · </span><a href="https://www.arcgis.com/home/item.html?id=38e5f3e00b7d447ca57d38316877c059" aria-label="Car-park footprints: Auckland Council">Council</a></span>
 </footer>
-<div id="tip" hidden></div>
+<div id="tip" role="region" aria-label="Parking details" hidden></div>
+<script type="module" src="js/header.js"></script>
+<script type="module" src="js/footer.js"></script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

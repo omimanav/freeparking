@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="How to use NZ Free Parking, understand parking colours, and check the sources and limits of Auckland parking information.">
+<title>About | NZ Free Parking</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/about.css">
+</head>
+<body class="about-page">
+<a class="skip-link" href="#about-content">Skip to content</a>
+<header class="about-header">
+  <a class="about-brand" href="index.html">NZ Free Parking</a>
+  <nav class="page-nav" aria-label="Pages">
+    <a href="index.html">Map</a>
+    <a href="about.html" aria-current="page">About</a>
+  </nav>
+  <button id="theme" type="button" aria-label="Change colour theme">Auto</button>
+</header>
+<main class="about-main" id="about-content">
+  <div class="about-intro">
+    <p class="about-eyebrow">Auckland parking information</p>
+    <h1>About this map</h1>
+    <p class="about-lead">NZ Free Parking helps you explore published parking locations and areas across Auckland and understand the information available for each one.</p>
+    <a class="about-map-link" href="index.html">Explore the map <span aria-hidden="true">&rarr;</span></a>
+  </div>
+
+  <nav class="about-toc" aria-label="On this page">
+    <a href="#coverage">Coverage</a>
+    <a href="#using-the-map">Using the map</a>
+    <a href="#colours">Colours</a>
+    <a href="#data-sources">Data sources</a>
+    <a href="#limitations">Limitations</a>
+    <a href="#location-and-preferences">Location &amp; preferences</a>
+  </nav>
+
+  <div class="about-content">
+    <section id="coverage" aria-labelledby="coverage-heading">
+      <h2 id="coverage-heading">What the map shows</h2>
+      <p>The map covers <strong>Auckland</strong> using Auckland Transport parking locations, paid-parking and loading-zone areas, and Auckland Council car-park surface footprints. Read each feature&rsquo;s type and source details to check what it represents.</p>
+      <p><strong>Dots show locations; filled shapes show published areas.</strong> AT polygons show mapped paid or loading zones. Council polygons show car-park surfaces, which may be only part of a car park. Neither a footprint nor a payment zone proves that every spot inside it is available or permitted for parking. Unmapped places are not automatically free.</p>
+    </section>
+
+    <section id="using-the-map" aria-labelledby="using-heading">
+      <h2 id="using-heading">Using the map</h2>
+      <ol class="about-steps">
+        <li><strong>Explore a location.</strong> Click or tap a point or area to see its source details. A tap pins the details until you close them. Where mapped features overlap, their details are listed together. Select a list entry to highlight it and zoom to its boundary; use Show more to see further entries.</li>
+        <li><strong>Open it in Maps.</strong> Point-location details include a link to your device&rsquo;s maps service. A recorded point may not be a car park entrance. Area details do not invent a navigation destination from a polygon centre.</li>
+        <li><strong>Find parking near you.</strong> Choose <em>Locate me</em> and allow location access. The map centres on your position and the list sorts by approximate distance to the mapped feature. An area containing your position has zero distance; this is not a driving-route estimate. Choose the button again to stop location updates.</li>
+        <li><strong>Change the background.</strong> On mobile, open <em>Map options</em> to find the base map and theme controls. The <em>Base map</em> selector offers OpenStreetMap Streets, Humanitarian and Terrain (OpenTopoMap). These backgrounds do not change the parking information.</li>
+        <li><strong>Choose parking layers.</strong> In Map options, expand <em>Parking layers</em> to show or hide points, AT paid zones, AT loading zones and Council footprints. Counts show the loaded records. Layer choices are saved in this browser.</li>
+        <li><strong>Choose a theme.</strong> The theme button cycles through Auto, Light and Dark. Auto follows your device&rsquo;s colour preference.</li>
+      </ol>
+    </section>
+
+    <section id="colours" aria-labelledby="colours-heading">
+      <h2 id="colours-heading">What the colours mean</h2>
+      <p>Area colours identify the source category. Point-marker colours are inferred from their published descriptions. Neither is a live check of permission or space availability.</p>
+      <div class="about-table-wrap">
+        <table class="about-table"><caption>Parking area colours</caption><thead><tr><th scope="col">Area</th><th scope="col">What it establishes</th></tr></thead><tbody>
+          <tr><th scope="row">Red: paid zone</th><td>An official AT payment-zone polygon. Rates and charging hours are not provided by this layer.</td></tr>
+          <tr><th scope="row">Orange: loading zone</th><td>An official loading-zone polygon. Details show available restriction and operating-time fields. Incomplete schedules, including “At All Other Times”, need signage context.</td></tr>
+          <tr><th scope="row">Grey-blue: car-park footprint</th><td>A Council surface asset classified as Carpark and marked valid/public in the published data. This data flag does not establish parking access, fees or permitted hours.</td></tr>
+        </tbody></table>
+      </div>
+      <div class="about-table-wrap">
+        <table class="about-table">
+          <caption>Parking marker colours</caption>
+          <thead><tr><th scope="col">Map label</th><th scope="col">How to read it</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-green" aria-hidden="true"></span>Free now</span></th><td>The source text indicates free parking. Confirm the signs and any access or eligibility conditions before parking.</td></tr>
+            <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-blue" aria-hidden="true"></span>Time limit</span></th><td>The description mentions a limit such as P60 or P120. A time limit alone does not confirm that parking is free or open to every vehicle.</td></tr>
+            <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-red" aria-hidden="true"></span>Paid / restricted</span></th><td>The information indicates payment or a restriction. The current dataset does not provide a complete charging schedule.</td></tr>
+            <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-grey" aria-hidden="true"></span>Rules unknown</span></th><td>The description does not establish the rules clearly enough. Check the location&rsquo;s signs or official information.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="data-sources" aria-labelledby="sources-heading">
+      <h2 id="sources-heading">Where the information comes from</h2>
+      <h3>Parking data currently shown</h3>
+      <p>The map queries <a data-parking-source href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingService/FeatureServer/1">Auckland Transport&rsquo;s Car Parking service</a>, linked from the <a href="https://catalogue.data.govt.nz/dataset/car-parking60">data.govt.nz catalogue</a>. It includes location points, descriptions, addresses and some space counts. The published dataset is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0</a>.</p>
+      <p>The app fetches parking data on opening and every <strong><span id="refresh-minutes">15</span> minutes</strong> while running. The &ldquo;Updated&rdquo; time records a fetch attempt, not when the council last checked a location. A source-failure message means that attempt did not fully succeed, and earlier data may remain visible.</p>
+      <h3>Official parking prices and hours</h3>
+      <p>Visit <a href="https://at.govt.nz/driving-and-parking/find-parking/parking-in-central-auckland/open-air-car-parks">Auckland Transport: on-street and open-air parking</a> for published charging schedules, operating details and car-park information. This is an important companion to the location data shown on this map.</p>
+      <h3>Official polygon overlays currently shown</h3>
+      <p>These three layers are enabled by default and can be switched off individually. Polygon rings, holes and disconnected parts are preserved. Large datasets are fetched in batches to avoid service record limits. Records without drawable geometry are omitted and reported beside the parking list; the displayed layer counts include only drawable features.</p>
+      <ul class="about-source-list">
+        <li><a href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingZone/FeatureServer/3">AT Paid Parking Zones</a> &mdash; mapped zone polygons and zone IDs, without tariff schedules.</li>
+        <li><a href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingZone/FeatureServer/1">AT Loading Zones</a> &mdash; polygon areas with restriction and operating-time fields.</li>
+        <li><a href="https://services1.arcgis.com/n4yPwebTjJCmXB6W/arcgis/rest/services/Park_Structure_Hard_Surface/FeatureServer/0">Auckland Council Park Structure Hard Surface</a> &mdash; car-park surface footprints among other parks assets. A footprint does not establish fees, access or parking rules.</li>
+      </ul>
+<h3>Additional source not yet shown</h3>
+      <p><a href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/MobilityParkingPublic/FeatureServer/0">AT Mobility Parking Facilities</a> offers more structured mobility restrictions. The separate Car Parking location layer currently supplies the points.</p>
+      <p>AT data is credited to Auckland Transport. Car-park footprint data is credited to <a href="https://www.arcgis.com/home/item.html?id=38e5f3e00b7d447ca57d38316877c059">Auckland Council</a>. Follow each source link for its metadata and use terms.</p>
+      <h3>Base maps and credits</h3>
+      <ul class="about-source-list">
+        <li><strong>OpenStreetMap Streets:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</li>
+        <li><strong>Humanitarian:</strong> OpenStreetMap data, a style by the <a href="https://www.hotosm.org/">Humanitarian OpenStreetMap Team</a>, and tiles from <a href="https://www.openstreetmap.fr/">OpenStreetMap France</a>.</li>
+        <li><strong>Terrain:</strong> OpenStreetMap and SRTM data, with map styling by <a href="https://opentopomap.org/about">OpenTopoMap</a> under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA</a>.</li>
+      </ul>
+      <p>Map display uses <a href="https://maplibre.org/">MapLibre GL JS</a> for GPU-accelerated rendering. If it cannot start or its graphics context is lost, the app switches to <a href="https://leafletjs.com/">Leaflet</a> as a backup. The active renderer is shown below the map. The selected base map&rsquo;s source credit is also shown on the map itself.</p>
+    </section>
+
+    <section id="limitations" aria-labelledby="limitations-heading">
+      <h2 id="limitations-heading">Important limits</h2>
+      <ul class="about-source-list">
+        <li><strong>Coverage is incomplete.</strong> This is not a full inventory of every public parking space or street restriction in Auckland.</li>
+        <li><strong>Rule schedules are incomplete.</strong> Location-point labels are inferred from descriptions. Loading zones have some schedule fields, but the combined sources do not provide a complete schedule of prices, permitted hours, holidays or temporary restrictions. A colour cannot confirm the rule for a particular moment.</li>
+        <li><strong>Space counts are not live occupancy.</strong> A listed capacity or availability figure does not guarantee an empty space when you arrive.</li>
+        <li><strong>Published details can lag changes.</strong> Follow the signs and road markings at the location, including temporary restrictions.</li>
+      </ul>
+      <p>For current official information, check <a href="https://at.govt.nz/driving-and-parking/find-parking/parking-in-central-auckland/open-air-car-parks">on-street and open-air parking details</a> or <a href="https://at.govt.nz/driving-and-parking/find-parking/parking-in-central-auckland">central Auckland car-park information</a>. Report source-data issues through <a href="https://at.govt.nz/about-us/contact-us">Auckland Transport</a>.</p>
+    </section>
+
+    <section id="location-and-preferences" aria-labelledby="privacy-heading">
+      <h2 id="privacy-heading">Location and preferences</h2>
+      <p>Your location is requested when you choose <em>Locate me</em>. The browser uses that position to centre the map and sort nearby locations. You can stop updates with the same button or change location permission in your browser settings.</p>
+      <p>Your base map, layer visibility and theme choices are saved in this browser. Loading the map and parking information makes requests to the external map providers and the Auckland Transport and Auckland Council data services. Following an &ldquo;Open in Maps&rdquo; link sends the selected parking location to the maps service.</p>
+    </section>
+  </div>
+</main>
+<footer class="about-footer">
+  <span>NZ Free Parking &middot; Auckland</span>
+  <span>Page reviewed <time datetime="2026-11-18">18 November 2026</time></span>
+  <a href="index.html">Back to the map</a>
+</footer>
+<script type="module" src="js/about.js"></script>
+</body>
+</html>

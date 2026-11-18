@@ -1,12 +1,35 @@
 // All tunables live here. Swap a city's `source` to change its data without touching anything else.
 export const CONFIG = {
   refreshMs: 15 * 60 * 1000,
-  mapkitToken: '', // Apple MapKit JS token (JWT). Empty = list-only mode with "Open in Maps" links.
+  map: {
+    zoom: 15,
+    defaultBasemap: 'osm',
+    basemaps: [
+      {
+        id: 'osm', name: 'OpenStreetMap Streets',
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      },
+      {
+        id: 'humanitarian', name: 'Humanitarian',
+        url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+        minZoom: 1, maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Style: <a href="https://www.hotosm.org/">HOT</a> | Tiles: <a href="https://www.openstreetmap.fr/">OpenStreetMap France</a>',
+      },
+      {
+        id: 'terrain', name: 'Terrain (OpenTopoMap)',
+        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        maxNativeZoom: 17, maxZoom: 19,
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org/">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA</a>)',
+      },
+    ],
+  },
   cities: [
     { id: 'auckland', name: 'Auckland', center: [-36.8485, 174.7633], source: {
-      type: 'csv',
-      url: 'https://data-atgis.opendata.arcgis.com/api/download/v1/items/4da9854830184c698dc38ca8d4a63927/csv?layers=1',
-      // Points come from the X (lng) / Y (lat) columns automatically.
+      type: 'arcgis',
+      url: 'https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingService/FeatureServer/1',
+      // Query WGS84 GeoJSON directly; the CSV export uses NZTM grid coordinates.
       // This dataset has no price/hours fields, so rules are read conservatively from the description text.
       // Anything ambiguous stays grey ("rules unknown") rather than risk showing a wrong "free".
       map: r => {
@@ -20,7 +43,7 @@ export const CONFIG = {
           name: r.SHORTDESCRIPTION || [r.STREETNUMBER, r.STREET].filter(Boolean).join(' ') || 'Car park',
           kind: paid ? 'paid' : limit ? 'limit' : free ? 'free' : 'unknown',
           limitMin: limit ? +limit[1] : undefined,
-          info: [r.LONGDESCRIPTION, has(r.TOTALSPACES) && `${r.TOTALSPACES} spaces`,
+          info: [r.DATATYPE, r.LONGDESCRIPTION, has(r.TOTALSPACES) && `${r.TOTALSPACES} spaces`,
             r.AVAILABLESPACES && `${r.AVAILABLESPACES} available`, has(r.MOBILITYSPACES) && `${r.MOBILITYSPACES} mobility`,
             has(r.CLEARANCEMETERS) && `${r.CLEARANCEMETERS} m clearance`, [r.STREETNUMBER, r.STREET, r.SUBURB].filter(Boolean).join(' ')]
             .filter(Boolean).join(' | '),
