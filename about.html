@@ -82,6 +82,7 @@
 
     <section id="data-sources" aria-labelledby="sources-heading">
       <h2 id="sources-heading">Where the information comes from</h2>
+      <p>The NZ Free Parking software is licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General Public License, version 3 (GPLv3)</a>.</p>
       <h3>Parking data currently shown</h3>
       <p>The map queries <a data-parking-source href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingService/FeatureServer/1">Auckland Transport&rsquo;s Car Parking service</a>, linked from the <a href="https://catalogue.data.govt.nz/dataset/car-parking60">data.govt.nz catalogue</a>. It includes location points, descriptions, addresses and some space counts. The published dataset is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0</a>.</p>
       <p>The app fetches parking data on opening and every <strong><span id="refresh-minutes">15</span> minutes</strong> while running. The &ldquo;Updated&rdquo; time records a fetch attempt, not when the council last checked a location. A source-failure message means that attempt did not fully succeed, and earlier data may remain visible.</p>
