@@ -1,5 +1,5 @@
 // Both renderers implement the same map contract; this facade preserves state on fallback.
-export async function createMap(options, el, center) {
+export async function createMap(options, el, city) {
   let active = null, switching = null, segments = [], position = null, pointer = null, selected = null, pendingBounds = null;
   let theme = document.documentElement.dataset.theme || 'light', basemap = options.defaultBasemap;
   const status = document.querySelector('#renderer');
@@ -8,17 +8,19 @@ export async function createMap(options, el, center) {
     if (status) status.textContent = name === 'maplibre' ? 'MapLibre' : el.dataset.basemap ? 'Leaflet backup' : 'Leaflet backup · street map unavailable';
   };
   async function fallback() {
-    const view = active?.getView?.() || { center, zoom: options.zoom };
+    const previousCity = city;
+    const view = active?.getView?.() || { center: city.center, zoom: options.zoom };
     active?.destroy(); active = null; el.replaceChildren(); delete el.dataset.basemap;
     const createLeaflet = (await import('./openstreetmap.js')).default;
-    active = await createLeaflet(el, { ...options, viewZoom: view.zoom, defaultBasemap: basemap }, view.center);
+    active = await createLeaflet(el, { ...options, viewZoom: view.zoom, viewCenter: view.center, defaultBasemap: basemap }, previousCity);
+    if (city !== previousCity) active.setCity(city);
     active.setTheme(theme); active.render(segments); active.setSelection(selected); active.setUserLocation(position, false);
     if (pendingBounds) { active.fitBounds(pendingBounds); pendingBounds = null; }
     if (pointer) active.onPointer(pointer);
     mark('leaflet');
   }
   try {
-    active = await (await import('./maplibre.js')).default(el, options, center);
+    active = await (await import('./maplibre.js')).default(el, options, city);
     mark('maplibre');
     active.onFailure(() => {
       if (switching) return;
@@ -39,7 +41,7 @@ export async function createMap(options, el, center) {
     setSelection(id) { selected = id; active?.setSelection(id); },
     fitBounds(bounds) { if (active) active.fitBounds(bounds); else pendingBounds = bounds; },
     setUserLocation(p, recenter) { position = p; active?.setUserLocation(p, recenter); },
-    flyTo(c) { center = c; active?.flyTo(c); },
+    setCity(next) { city = next; pendingBounds = null; active?.setCity(next); },
     onPointer(callback) { pointer = callback; active?.onPointer(callback); },
   };
 }

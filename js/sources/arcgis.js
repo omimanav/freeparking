@@ -1,31 +1,50 @@
 import { validGeometry } from '../engine/geometry.js';
 
-async function request(url, params, id) {
+async function request(url, params, id, signal) {
   const encoded = new URLSearchParams(params);
+  const timeout = AbortSignal.timeout(25000);
   // Feature ID batches can exceed proxy URL limits; form POST is supported by ArcGIS and needs no CORS preflight.
   const response = await fetch(params.objectIds ? `${url}/query` : `${url}/query?${encoded}`, {
-    signal: AbortSignal.timeout(25000),
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
     ...(params.objectIds ? { method: 'POST', body: encoded } : {}),
   });
   if (!response.ok) throw new Error(`${id}: HTTP ${response.status}`);
   const data = await response.json();
-  if (data.error) throw new Error(`${id}: ${data.error.message || 'Parking service error'}`);
+  if (data.error) {
+    const error = new Error(`${id}: ${data.error.message || data.error.details?.[0] || 'Parking service error'}`);
+    error.arcgisCode = data.error.code;
+    throw error;
+  }
   return data;
 }
 export default {
-  async fetch({ id, source }) {
+  async fetch({ id, source, bounds }, signal) {
     const where = source.where || '1=1';
-    const result = await request(source.url, { where, returnIdsOnly: 'true', f: 'json' }, id);
+    const extent = bounds ? {
+      geometry: bounds.join(','), geometryType: 'esriGeometryEnvelope', inSR: '4326', spatialRel: 'esriSpatialRelIntersects',
+    } : {};
+    const filter = { where, ...extent, f: 'json' };
+    let result;
+    try {
+      result = await request(source.url, { ...filter, returnIdsOnly: 'true' }, id, signal);
+    } catch (error) {
+      if (!bounds || error.arcgisCode !== 400) throw error;
+      // Some ArcGIS layers reject an extent query for IDs when it has no matches.
+      const count = await request(source.url, { ...filter, returnCountOnly: 'true' }, id, signal);
+      if (count.count === 0) return { items: [], downloadedCount: 0, skippedCount: 0 };
+      throw error;
+    }
     if (!Array.isArray(result.objectIds)) throw new Error(`${id}: Invalid record ID response`);
     const ids = [...new Set(result.objectIds)].sort((a, b) => a - b);
     const batches = [];
     for (let offset = 0; offset < ids.length; offset += 400) batches.push(ids.slice(offset, offset + 400));
     const pages = new Array(batches.length);
     let next = 0;
+    const outFields = source.fields?.join(',') || '*';
     const worker = async () => {
       while (next < batches.length) {
         const index = next++, batch = batches[index];
-        const data = await request(source.url, { where, objectIds: batch.join(','), outFields: '*', outSR: '4326', f: 'geojson' }, id);
+        const data = await request(source.url, { where, objectIds: batch.join(','), outFields, outSR: '4326', f: 'geojson' }, id, signal);
         if (!Array.isArray(data.features)) throw new Error(`${id}: Invalid parking data response`);
         const received = new Set(data.features.map(f => String(f.properties?.[result.objectIdFieldName] ?? f.id)));
         if (data.exceededTransferLimit || data.properties?.exceededTransferLimit || batch.some(key => !received.has(String(key)))) throw new Error(`${id}: Incomplete parking response`);

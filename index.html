@@ -27,7 +27,7 @@
 </header>
 <main>
   <div id="map"></div>
-  <aside id="list" aria-label="Parking locations and areas"><div id="source-status" class="source-alert" role="status" hidden></div><div id="parking-rows"></div></aside>
+  <aside id="list" aria-label="Parking features"><div id="source-status" class="source-alert" role="status" hidden></div><div id="parking-rows"></div></aside>
 </main>
 <footer class="map-footer">
   <details class="map-info" id="map-info">
@@ -41,14 +41,14 @@
         <li><i style="background:#1fa24a" aria-hidden="true"></i>No charge under published rules</li>
         <li><i style="background:#1a73e8" aria-hidden="true"></i>Time limit</li>
         <li><i style="background:#d93025" aria-hidden="true"></i>Paid / restricted</li>
-        <li><i style="background:#8e8e93" aria-hidden="true"></i>Hours unverified or loading inactive</li>
+        <li><i style="background:#8e8e93" aria-hidden="true"></i>Unverified or inactive restriction</li>
       </ul>
-      <p class="map-info-note">Scheduled zones use Auckland time. Check signs for other restrictions and access rules.</p>
-      <p class="map-info-links"><a href="https://www.gnu.org/licenses/gpl-3.0.html">Software licence (GPLv3)</a><a href="https://creativecommons.org/licenses/by/4.0/">Data licence: CC BY 4.0</a><a href="about.html">About this map</a></p>
+      <p class="map-info-note">Scheduled zones use New Zealand local time. Check signs for other restrictions and access rules.</p>
+      <p class="map-info-links"><a href="https://www.gnu.org/licenses/gpl-3.0.html">Software licence (GPLv3)</a><a href="about.html#data-sources">Parking data and licences</a><a href="about.html">About this map</a></p>
     </div>
   </details>
   <span id="renderer" role="status">Starting map&hellip;</span>
-  <span class="map-data-credit"><a href="https://catalogue.data.govt.nz/dataset/car-parking60" aria-label="Parking data: Auckland Transport">AT</a><span aria-hidden="true"> · </span><a href="https://www.arcgis.com/home/item.html?id=38e5f3e00b7d447ca57d38316877c059" aria-label="Car-park footprints: Auckland Council">Council</a></span>
+  <span class="map-data-credit"></span>
 </footer>
 <div id="tip" role="region" aria-label="Parking details" hidden></div>
 <script type="module" src="js/header.js"></script>

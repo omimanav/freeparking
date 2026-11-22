@@ -68,7 +68,7 @@ export const AREA_SOURCES = [
   },
   {
     id: 'council', name: 'Council car-park footprints', color: '#687b8a', rank: 0,
-    credit: 'Auckland Council', sourceUrl: 'https://services1.arcgis.com/n4yPwebTjJCmXB6W/arcgis/rest/services/Park_Structure_Hard_Surface/FeatureServer/0',
+    credit: 'Auckland Council', shortCredit: 'Council', sourceUrl: 'https://services1.arcgis.com/n4yPwebTjJCmXB6W/arcgis/rest/services/Park_Structure_Hard_Surface/FeatureServer/0',
     source: {
       type: 'arcgis', url: 'https://services1.arcgis.com/n4yPwebTjJCmXB6W/arcgis/rest/services/Park_Structure_Hard_Surface/FeatureServer/0',
       where: "AssetGroup = 'Carpark' AND VALIDATIONSTATE = 3",

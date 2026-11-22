@@ -1,6 +1,7 @@
 import { collection } from '../engine/geometry.js';
 const empty = () => ({ type: 'FeatureCollection', features: [] });
 const lngLat = ([lat, lng]) => [lng, lat];
+const toBounds = ([west, south, east, north]) => [[west, south], [east, north]];
 
 async function load() {
   if (window.maplibregl) return;
@@ -16,12 +17,13 @@ async function load() {
   });
 }
 
-export default async function createMapLibre(el, options, center) {
+export default async function createMapLibre(el, options, city) {
   await load();
   const initialBasemap = options.basemaps.find(b => b.id === options.defaultBasemap);
   const map = new window.maplibregl.Map({
     // MapLibre uses a 512px world at zoom 0; the shared contract uses Leaflet's 256px convention.
-    container: el, center: lngLat(center), zoom: options.zoom - 1,
+    container: el, center: lngLat(city.center), zoom: options.zoom - 1,
+    maxBounds: toBounds(city.bounds), renderWorldCopies: false,
     style: initialBasemap.style || { version: 8, sources: {}, layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#f2f2f7' } }] },
     attributionControl: false, dragRotate: false, pitchWithRotate: false,
   });
@@ -37,11 +39,9 @@ export default async function createMapLibre(el, options, center) {
   map.addControl(new window.maplibregl.NavigationControl({ showCompass: false }), 'top-left');
   map.addControl(new window.maplibregl.AttributionControl({ compact: false }), 'bottom-right');
   map.addSource('parking', { type: 'geojson', data: empty() });
-  for (const id of ['council', 'paid', 'loading']) {
-    const filter = ['all', ['==', '$type', 'Polygon'], ['==', 'layerId', id]];
-    map.addLayer({ id: `parking-${id}-fill`, type: 'fill', source: 'parking', filter, paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.2 } });
-    map.addLayer({ id: `parking-${id}-outline`, type: 'line', source: 'parking', filter, paint: { 'line-color': ['get', 'color'], 'line-width': 2 } });
-  }
+  const polygons = ['==', '$type', 'Polygon'];
+  map.addLayer({ id: 'parking-areas-fill', type: 'fill', source: 'parking', filter: polygons, layout: { 'fill-sort-key': ['get', 'rank'] }, paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.2 } });
+  map.addLayer({ id: 'parking-areas-outline', type: 'line', source: 'parking', filter: polygons, layout: { 'line-sort-key': ['get', 'rank'] }, paint: { 'line-color': ['get', 'color'], 'line-width': 2 } });
   map.addLayer({ id: 'parking-lines', type: 'line', source: 'parking', filter: ['==', '$type', 'LineString'], layout: { 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 7 } });
   map.addLayer({ id: 'parking-points', type: 'circle', source: 'parking', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 6, 'circle-color': ['get', 'color'], 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
   map.addSource('selection', { type: 'geojson', data: empty() });
@@ -76,7 +76,7 @@ export default async function createMapLibre(el, options, center) {
     const tiles = def.url.includes('{s}') ? ['a', 'b', 'c'].map(s => def.url.replace('{s}', s)) : [def.url];
     map.setMinZoom(Math.max(0, (def.minZoom ?? 0) - 1)); map.setMaxZoom(def.maxZoom - 1);
     map.addSource('basemap', { type: 'raster', tiles, tileSize: 256, minzoom: def.minZoom ?? 0, maxzoom: def.maxNativeZoom ?? def.maxZoom, attribution: def.attribution });
-    map.addLayer({ id: 'basemap', type: 'raster', source: 'basemap' }, 'parking-council-fill');
+    map.addLayer({ id: 'basemap', type: 'raster', source: 'basemap' }, 'parking-areas-fill');
     currentBasemap = id; el.dataset.basemap = id; applyTheme();
     return true;
   }
@@ -93,8 +93,13 @@ export default async function createMapLibre(el, options, center) {
       updateSelection();
     },
     setSelection(id) { if (selected === id) return; selected = id; updateSelection(); },
-    fitBounds(bounds) { map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]], { padding: 40, maxZoom: 17, duration: 450 }); },
-    flyTo: c => map.flyTo({ center: lngLat(c), zoom: options.zoom - 1 }),
+    fitBounds(bounds) { map.fitBounds(toBounds(bounds), { padding: 40, maxZoom: 17, duration: 450 }); },
+    setCity(next) {
+      map.stop();
+      map.setMaxBounds(null);
+      map.jumpTo({ center: lngLat(next.center), zoom: options.zoom - 1 });
+      map.setMaxBounds(toBounds(next.bounds));
+    },
     getView() { const c = map.getCenter(); return { center: [c.lat, c.lng], zoom: map.getZoom() + 1 }; },
     setUserLocation(p, recenter) {
       map.getSource('user-location').setData(p ? { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [p.lng, p.lat] } }] } : empty());

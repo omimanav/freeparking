@@ -1,4 +1,8 @@
-// All tunables live here. Swap a city's `source` to change its data without touching anything else.
+import { AREA_SOURCES } from './sources/areas.js';
+import { COUNCIL_CITIES } from './sources/council-parking.js';
+
+const aucklandLocations = 'https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingService/FeatureServer/1';
+
 export const PORTABLE_BASEMAP = {
   id: 'versatiles', name: 'VersaTiles Streets',
   style: 'https://tiles.versatiles.org/assets/styles/colorful/style.json', maxZoom: 19,
@@ -31,29 +35,37 @@ export const CONFIG = {
     ],
   },
   cities: [
-    { id: 'auckland', name: 'Auckland', center: [-36.8485, 174.7633], source: {
-      type: 'arcgis',
-      url: 'https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingService/FeatureServer/1',
-      // Query WGS84 GeoJSON directly; the CSV export uses NZTM grid coordinates.
-      // Descriptions may mention payment or a time limit. The feed has no charging schedules.
-      map: r => {
-        if (/clos/i.test(r.STATUS || '')) return null;
-        const text = `${r.SHORTDESCRIPTION || ''} ${r.LONGDESCRIPTION || ''}`;
-        const limit = text.match(/\bP\s?(\d{1,3})\b/i);
-        const paid = /\b(pay|paid|charge[sd]?|fee|tariff)\b|\$\s?\d/i.test(text);
-        const free = /\bfree\b/i.test(text) && !/\b(not|non)[- ]free\b|\d|hour|min|after|before|until|weekend/i.test(text);
-        const has = v => v && v !== '0';
-        return {
-          name: r.SHORTDESCRIPTION || [r.STREETNUMBER, r.STREET].filter(Boolean).join(' ') || 'Car park',
-          kind: paid ? 'unknown' : limit ? 'limit' : free ? 'free' : 'unknown',
-          label: paid ? 'Payment indicated · hours unverified' : undefined,
-          limitMin: limit ? +limit[1] : undefined,
-          info: [r.DATATYPE, r.LONGDESCRIPTION, has(r.TOTALSPACES) && `${r.TOTALSPACES} spaces`,
-            r.AVAILABLESPACES && `${r.AVAILABLESPACES} available`, has(r.MOBILITYSPACES) && `${r.MOBILITYSPACES} mobility`,
-            has(r.CLEARANCEMETERS) && `${r.CLEARANCEMETERS} m clearance`, [r.STREETNUMBER, r.STREET, r.SUBURB].filter(Boolean).join(' ')]
-            .filter(Boolean).join(' | '),
-        };
-      },
-    } },
+    {
+      id: 'auckland', name: 'Auckland', center: [-36.8485, 174.7633], bounds: [174.52, -37.03, 174.96, -36.69],
+      layers: [{
+        id: 'locations', name: 'Parking location points', color: '#1a73e8', rank: 3,
+        credit: 'Auckland Transport', shortCredit: 'AT', sourceUrl: aucklandLocations,
+        source: {
+          type: 'arcgis',
+          url: aucklandLocations,
+          // Query WGS84 GeoJSON directly; the CSV export uses NZTM grid coordinates.
+          // Descriptions may mention payment or a time limit. The feed has no charging schedules.
+          map: r => {
+            if (/clos/i.test(r.STATUS || '')) return null;
+            const text = `${r.SHORTDESCRIPTION || ''} ${r.LONGDESCRIPTION || ''}`;
+            const limit = text.match(/\bP\s?(\d{1,3})\b/i);
+            const paid = /\b(pay|paid|charge[sd]?|fee|tariff)\b|\$\s?\d/i.test(text);
+            const free = /\bfree\b/i.test(text) && !/\b(not|non)[- ]free\b|\d|hour|min|after|before|until|weekend/i.test(text);
+            const has = v => v && v !== '0';
+            return {
+              name: r.SHORTDESCRIPTION || [r.STREETNUMBER, r.STREET].filter(Boolean).join(' ') || 'Car park',
+              kind: paid ? 'unknown' : limit ? 'limit' : free ? 'free' : 'unknown',
+              label: paid ? 'Payment indicated · hours unverified' : undefined,
+              limitMin: limit ? +limit[1] : undefined,
+              info: [r.DATATYPE, r.LONGDESCRIPTION, has(r.TOTALSPACES) && `${r.TOTALSPACES} spaces`,
+                r.AVAILABLESPACES && `${r.AVAILABLESPACES} available`, has(r.MOBILITYSPACES) && `${r.MOBILITYSPACES} mobility`,
+                has(r.CLEARANCEMETERS) && `${r.CLEARANCEMETERS} m clearance`, [r.STREETNUMBER, r.STREET, r.SUBURB].filter(Boolean).join(' ')]
+                .filter(Boolean).join(' | '),
+            };
+          },
+        },
+      }, ...AREA_SOURCES],
+    },
+    ...COUNCIL_CITIES,
   ],
 };

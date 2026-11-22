@@ -77,5 +77,5 @@ export function hitsAt(items, lat, lng, tolerance) {
   }).sort((a, b) => b.rank - a.rank || distanceTo(a, lat, lng) - distanceTo(b, lat, lng));
 }
 export function collection(items) {
-  return { type: 'FeatureCollection', features: items.map(item => ({ type: 'Feature', id: item.id, properties: { color: item.color, layerId: item.layerId, id: item.id }, geometry: item.geometry })) };
+  return { type: 'FeatureCollection', features: items.map(item => ({ type: 'Feature', id: item.id, properties: { color: item.color, rank: item.rank, layerId: item.layerId, id: item.id }, geometry: item.geometry })) };
 }

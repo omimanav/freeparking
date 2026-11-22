@@ -1,6 +1,5 @@
 import { CONFIG, PORTABLE_BASEMAP } from './config.js';
 import { fetchCity } from './sources/index.js';
-import { AREA_SOURCES } from './sources/areas.js';
 import { classifyAt, COLORS, nzNow } from './engine/status.js';
 import { geometryOf, boundsOf, isArea, hitsAt, distanceTo } from './engine/geometry.js';
 import { startRefresh } from './engine/refresh.js';
@@ -11,16 +10,18 @@ import { initLocation } from './ui/location.js';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const layers = [{ id: 'locations', name: 'Parking location points', color: '#1a73e8', rank: 3 }, ...AREA_SOURCES];
-const enabled = new Set(layers.map(l => l.id));
-try { const hidden = JSON.parse(localStorage.getItem('parking-hidden-layers') || '[]'); if (Array.isArray(hidden)) hidden.forEach(id => enabled.delete(id)); } catch {}
-const definitions = CONFIG.cities.flatMap(c => [
-  { id: `${c.id}-locations`, cityId: c.id, layerId: 'locations', name: 'AT parking locations', source: c.source, credit: 'Auckland Transport', sourceUrl: c.source.url },
-  ...(c.id === 'auckland' ? AREA_SOURCES.map(a => ({ ...a, id: `${c.id}-${a.id}`, cityId: c.id, layerId: a.id })) : []),
-]);
-const state = new Map(definitions.map(d => [d.id, { status: 'loading', items: [], error: '', skipped: 0, updated: null }]));
+const hiddenLayers = new Set();
+try { const saved = JSON.parse(localStorage.getItem('parking-hidden-layers') || '[]'); if (Array.isArray(saved)) saved.forEach(id => hiddenLayers.add(id)); } catch {}
+const definitions = new Map(CONFIG.cities.map(c => [c.id, c.layers.map(layer => ({
+  ...layer, id: `${c.id}-${layer.id}`, layerId: layer.id, bounds: c.bounds,
+  preference: c.id === 'auckland' ? layer.id : `${c.id}-${layer.id}`,
+}))]));
+const state = new Map([...definitions.values()].flat().map(d => [d.id, { status: 'idle', items: [], error: '', skipped: 0 }]));
+const lastAttempts = new Map();
 let city = CONFIG.cities[0], map = null, me = null, current = [], selected = null, details = null, listLimit = 100;
-let revision = 0, rendered = '', inFlight = null, lastAttempt = null;
+let revision = 0, rendered = '', inFlight = null;
+const cityLayers = () => definitions.get(city.id);
+const isEnabled = layer => !hiddenLayers.has(layer.preference);
 initTheme($('#theme'), t => map?.setTheme(t));
 
 const basemapSelect = $('#basemap');
@@ -32,18 +33,43 @@ try { const saved = localStorage.getItem('parking-basemap'); if (mapOptions.base
 basemapSelect.value = basemapId;
 basemapSelect.onchange = () => { if (!map?.setBasemap(basemapSelect.value)) return; try { localStorage.setItem('parking-basemap', basemapSelect.value); } catch {} };
 
-$('#overlay-options').innerHTML = layers.map(l => `<label><input type="checkbox" value="${l.id}" ${enabled.has(l.id) ? 'checked' : ''}><span class="layer-swatch" style="background:${l.color}"></span><span>${esc(l.name)}</span><small data-count="${l.id}">Loading…</small></label>`).join('');
 $('#overlay-options').onchange = event => {
   const input = event.target;
   if (input.type !== 'checkbox') return;
-  if (input.checked) enabled.add(input.value); else enabled.delete(input.value);
-  try { localStorage.setItem('parking-hidden-layers', JSON.stringify(layers.filter(l => !enabled.has(l.id)).map(l => l.id))); } catch {}
+  if (input.checked) hiddenLayers.delete(input.value); else hiddenLayers.add(input.value);
+  try { localStorage.setItem('parking-hidden-layers', JSON.stringify([...hiddenLayers])); } catch {}
   listLimit = 100; clearDetails(); paint();
 };
 $('#cities').innerHTML = CONFIG.cities.map(c => `<button data-id="${c.id}">${esc(c.name)}</button>`).join('');
-const markCity = () => document.querySelectorAll('#cities button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === city.id));
-$('#cities').onclick = event => { const next = CONFIG.cities.find(c => c.id === event.target.dataset.id); if (!next) return; city = next; listLimit = 100; clearDetails(); markCity(); map?.flyTo(city.center); paint(); };
+function markCity() {
+  document.querySelectorAll('#cities button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === city.id));
+  $('#overlay-options').innerHTML = '<legend>Visible parking layers</legend>' + cityLayers().map(l =>
+    `<label><input type="checkbox" value="${esc(l.preference)}" ${isEnabled(l) ? 'checked' : ''}><span class="layer-swatch" style="background:${l.color}"></span><span>${esc(l.name)}</span><small data-count="${l.layerId}"></small></label>`).join('');
+  const credits = city.layers.filter((layer, i) => city.layers.findIndex(l => l.credit === layer.credit) === i);
+  $('.map-data-credit').innerHTML = credits.map(l =>
+    `<a href="${esc(l.sourceUrl)}" aria-label="Parking data: ${esc(l.credit)}">${esc(l.shortCredit || l.credit)}</a>`).join('<span aria-hidden="true"> · </span>');
+}
+$('#cities').onclick = event => {
+  const next = CONFIG.cities.find(c => c.id === event.target.dataset.id);
+  if (!next || next === city) return;
+  inFlight?.controller.abort();
+  inFlight = null;
+  city = next;
+  listLimit = 100;
+  clearDetails();
+  markCity();
+  map?.setCity(city);
+  map?.setUserLocation(locationInCity(), false);
+  paint();
+  const lastAttempt = lastAttempts.get(city.id);
+  if (!lastAttempt || Date.now() - lastAttempt >= CONFIG.refreshMs || cityLayers().some(d => state.get(d.id).status === 'loading')) load();
+};
 markCity();
+
+function locationInCity() {
+  const [west, south, east, north] = city.bounds;
+  return me && me.lng >= west && me.lng <= east && me.lat >= south && me.lat <= north ? me : null;
+}
 
 function clearDetails() { details = null; selected = null; $('#tip').hidden = true; map?.setSelection(null); document.querySelectorAll('.row[aria-pressed=true]').forEach(r => r.setAttribute('aria-pressed', 'false')); }
 function showDetails(items, x, y) {
@@ -80,36 +106,37 @@ $('#parking-rows').onclick = event => {
 $('#source-status').onclick = event => { if (event.target.closest('[data-retry]')) load(true); };
 
 function paintList() {
-  const rows = [...current].map(item => ({ item, distance: me ? distanceTo(item, me.lat, me.lng) : 0 })).sort((a, b) => a.distance - b.distance || a.item.name.localeCompare(b.item.name)).map(r => r.item);
+  const position = locationInCity();
+  const rows = current.map(item => ({ item, distance: position ? distanceTo(item, position.lat, position.lng) : 0 })).sort((a, b) => a.distance - b.distance || a.item.name.localeCompare(b.item.name)).map(r => r.item);
   $('#parking-rows').innerHTML = rows.slice(0, listLimit).map(item => `<button type="button" class="row" data-id="${esc(item.id)}" aria-pressed="${item.id === selected}"><i style="background:${item.color}" aria-hidden="true"></i><span><b>${esc(item.name)}</b><small>${esc(item.label)}. ${esc(item.info)}</small></span></button>`).join('')
     + (rows.length > listLimit ? `<button type="button" class="more-rows" data-more>Show ${Math.min(100, rows.length - listLimit)} more (${rows.length - listLimit} remaining)</button>` : '')
-    || `<p class="empty">${!enabled.size ? 'All parking layers are hidden. Enable a layer in Map options.' : 'No features loaded for the selected layers yet.'}</p>`;
+    || `<p class="empty">${!cityLayers().some(isEnabled) ? 'All parking layers are hidden. Enable a layer in Map options.' : 'No features loaded for the selected layers yet.'}</p>`;
 }
 function paintStatus() {
-  const relevant = definitions.filter(d => d.cityId === city.id);
-  const pending = relevant.filter(d => state.get(d.id).status === 'loading');
+  const relevant = cityLayers();
+  const pending = relevant.filter(d => ['idle', 'loading'].includes(state.get(d.id).status));
   const failures = relevant.filter(d => state.get(d.id).status === 'failed');
-  const areas = current.filter(i => isArea(i.geometry)).length;
-  const count = `${current.length - areas} locations · ${areas.toLocaleString('en-NZ')} areas`;
+  const counts = { locations: 0, segments: 0, areas: 0 };
+  for (const item of current) counts[item.geometry.type === 'Point' ? 'locations' : isArea(item.geometry) ? 'areas' : 'segments']++;
+  const count = Object.entries(counts).filter(([, n]) => n).map(([label, n]) => `${n.toLocaleString('en-NZ')} ${label}`).join(' · ') || '0 features';
+  const lastAttempt = lastAttempts.get(city.id);
   const time = lastAttempt ? `Updated ${lastAttempt.toLocaleTimeString('en-NZ', { timeZone: 'Pacific/Auckland', hour: '2-digit', minute: '2-digit' })} NZ time` : '';
   $('#updated').textContent = `${pending.length ? `Loading ${pending.length} layers… · ` : failures.length ? `${failures.length} source(s) failed · ` : ''}${count}${time ? ' · ' + time : ''}`;
   $('#updated').title = $('#updated').textContent;
   const warnings = relevant.filter(d => state.get(d.id).skipped > 0);
   $('#source-status').hidden = !failures.length && !warnings.length;
   $('#source-status').innerHTML = failures.map(d => `<p><b>${esc(d.name)}</b>: ${esc(state.get(d.id).error)}${state.get(d.id).items.length ? ' Showing earlier data.' : ''}</p>`).join('') + warnings.map(d => `<p>${esc(d.name)}: ${state.get(d.id).skipped} ${state.get(d.id).skipped === 1 ? 'record has' : 'records have'} no drawable geometry and ${state.get(d.id).skipped === 1 ? 'is' : 'are'} omitted.</p>`).join('') + (failures.length ? '<button type="button" data-retry>Retry failed sources</button>' : '');
-  for (const layer of layers) {
-    const defs = relevant.filter(d => d.layerId === layer.id);
-    const count = defs.reduce((n, d) => n + state.get(d.id).items.length, 0);
-    const failed = defs.some(d => state.get(d.id).status === 'failed');
-    const loading = defs.some(d => state.get(d.id).status === 'loading');
-    const skipped = defs.reduce((n, d) => n + state.get(d.id).skipped, 0);
-    document.querySelector(`[data-count="${layer.id}"]`).textContent = loading ? 'Loading…' : failed ? `${count} · failed` : `${count.toLocaleString('en-NZ')}${skipped ? ` · ${skipped} omitted` : ''}`;
+  for (const layer of relevant) {
+    const { items, status, skipped } = state.get(layer.id);
+    const count = items.length.toLocaleString('en-NZ');
+    document.querySelector(`[data-count="${layer.layerId}"]`).textContent = status === 'failed' ? `${count} · failed`
+      : pending.includes(layer) ? 'Loading…' : `${count}${skipped ? ` · ${skipped} omitted` : ''}`;
   }
 }
 function paint() {
-  const now = nzNow();
-  current = definitions.filter(d => d.cityId === city.id && enabled.has(d.layerId)).flatMap(d => state.get(d.id).items).map(item => {
-    if (!item.kind && item.layerId !== 'locations') return item;
+  const now = nzNow(new Date(), city.id);
+  current = cityLayers().filter(isEnabled).flatMap(d => state.get(d.id).items).map(item => {
+    if (!item.kind && !item.rules) return item;
     const status = classifyAt(item, now);
     return { ...item, color: COLORS[status.color], label: status.label };
   }).sort((a, b) => a.rank - b.rank);
@@ -126,34 +153,48 @@ function paint() {
   paintList(); paintStatus();
 }
 function load(onlyFailed = false) {
-  if (inFlight) return inFlight;
-  const requested = definitions.filter(d => !onlyFailed || state.get(d.id).status === 'failed');
+  if (inFlight) return inFlight.promise;
+  const requested = cityLayers().filter(d => !onlyFailed || state.get(d.id).status === 'failed');
+  if (!requested.length) return;
+  const target = city;
+  const controller = new AbortController();
   requested.forEach(d => { state.get(d.id).status = 'loading'; });
   paintStatus();
-  inFlight = Promise.allSettled(requested.map(async definition => {
+  const promise = Promise.allSettled(requested.map(async definition => {
     const record = state.get(definition.id);
     try {
-      const result = await fetchCity(definition);
-      const items = result.items;
+      const result = await fetchCity(definition, controller.signal);
+      if (controller.signal.aborted) return;
       record.skipped = result.skippedCount;
-      const layer = layers.find(l => l.id === definition.layerId);
-      record.items = items.map(item => {
+      record.items = result.items.map(item => {
         const geometry = geometryOf(item);
-        return { ...item, geometry, bounds: boundsOf(geometry), layerId: layer.id, color: layer.color, rank: layer.rank, sourceUrl: definition.sourceUrl, credit: definition.credit };
+        const { layerId, color, rank, sourceUrl, credit } = definition;
+        return { ...item, geometry, bounds: boundsOf(geometry), layerId, color, rank, sourceUrl, credit };
       });
-      record.status = 'ready'; record.error = ''; record.updated = new Date(); revision++;
-    } catch (error) { record.status = 'failed'; record.error = error.message || 'Download failed'; }
+      record.status = 'ready'; record.error = ''; revision++;
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      record.status = 'failed'; record.error = error.message || 'Download failed';
+    }
     paint();
-  })).finally(() => { lastAttempt = new Date(); inFlight = null; paintStatus(); });
-  return inFlight;
+  })).finally(() => {
+    if (controller.signal.aborted) return;
+    lastAttempts.set(target.id, new Date());
+    inFlight = null;
+    paintStatus();
+  });
+  inFlight = { controller, promise };
+  return promise;
 }
-initLocation($('#locate'), p => { const first = !me && p; me = p; map?.setUserLocation(p, first); paintList(); });
+initLocation($('#locate'), p => { const first = !me && p; me = p; map?.setUserLocation(locationInCity(), first); paintList(); });
 startRefresh(load, paint, CONFIG.refreshMs);
-map = await createMap({ ...mapOptions, defaultBasemap: basemapId }, $('#map'), city.center).catch(() => null);
+const initialCity = city;
+map = await createMap({ ...mapOptions, defaultBasemap: basemapId }, $('#map'), initialCity).catch(() => null);
 if (map) {
+  if (city !== initialCity) map.setCity(city);
   basemapSelect.disabled = mapOptions.basemaps.length < 2;
   map.setTheme(document.documentElement.dataset.theme);
-  map.setUserLocation(me, Boolean(me));
+  map.setUserLocation(locationInCity(), Boolean(me));
   map.onPointer(({ lat, lng, x, y, tolM, activate }) => {
     if (!activate) return;
     showDetails(hitsAt(current, lat, lng, tolM), x, y);

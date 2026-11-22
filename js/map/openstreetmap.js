@@ -1,4 +1,5 @@
 import { collection, isArea } from '../engine/geometry.js';
+const toBounds = ([west, south, east, north]) => [[south, west], [north, east]];
 const load = () => new Promise((resolve, reject) => {
   if (window.L) { resolve(); return; }
   const script = document.createElement('script');
@@ -11,19 +12,28 @@ const load = () => new Promise((resolve, reject) => {
   document.head.append(script);
 });
 
-export default async function createOpenStreetMap(el, options, center) {
+export default async function createOpenStreetMap(el, options, city) {
   await load();
   const L = window.L;
-  const map = L.map(el).setView(center, options.viewZoom ?? options.zoom);
-  let basemap = null;
-  function setBasemap(id) {
+  const map = L.map(el, { maxBoundsViscosity: 1 });
+  let basemap = null, cityBounds = L.latLngBounds(toBounds(city.bounds));
+  let basemapId = options.defaultBasemap;
+  function setZoomLimit() {
+    const definition = options.basemaps.find(b => b.id === basemapId);
+    map.setMinZoom(Math.max(definition?.minZoom ?? 0, map.getBoundsZoom(cityBounds, true)));
+  }
+  map.setMaxBounds(cityBounds);
+  setZoomLimit();
+  map.setView(options.viewCenter ?? city.center, options.viewZoom ?? options.zoom);
+  function setBasemap(id, force = false) {
     const definition = options.basemaps.find(b => b.id === id);
     if (!definition?.url) return false;
-    if (el.dataset.basemap === id) return true;
+    if (!force && el.dataset.basemap === id) return true;
+    basemapId = id;
     const { url, name, ...tileOptions } = definition;
-    const next = L.tileLayer(url, tileOptions);
+    const next = L.tileLayer(url, { ...tileOptions, bounds: cityBounds, noWrap: true });
     // Apply the new zoom limits before adding tiles, so we never request unsupported zooms.
-    map.setMinZoom(definition.minZoom ?? 0);
+    setZoomLimit();
     map.setMaxZoom(definition.maxZoom);
     if (basemap) map.removeLayer(basemap);
     basemap = next.addTo(map);
@@ -37,7 +47,7 @@ export default async function createOpenStreetMap(el, options, center) {
   const style = item => ({ color: item.id === selected ? '#1765cf' : item.color, weight: item.id === selected ? 4 : isArea(item.geometry) ? 2 : 7, fillColor: item.color, fillOpacity: 0.2 });
   let pin = null;
   // The parking list can change the map's height on small screens.
-  const resize = new ResizeObserver(() => map.invalidateSize({ pan: false }));
+  const resize = new ResizeObserver(() => { map.invalidateSize({ pan: false }); setZoomLimit(); });
   resize.observe(el);
 
   const pointerListeners = [];
@@ -76,8 +86,17 @@ export default async function createOpenStreetMap(el, options, center) {
         else entry.layer.setStyle(style(entry.item));
       }
     },
-    fitBounds(bounds) { map.fitBounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]], { padding: [40, 40], maxZoom: 18 }); },
-    flyTo: center => map.flyTo(center, options.zoom),
+    fitBounds(bounds) { map.fitBounds(toBounds(bounds), { padding: [40, 40], maxZoom: 18 }); },
+    setCity(next) {
+      map.stop();
+      if (basemap) { map.removeLayer(basemap); basemap = null; }
+      cityBounds = L.latLngBounds(toBounds(next.bounds));
+      map.setMaxBounds(null);
+      setZoomLimit();
+      map.setView(next.center, options.zoom, { animate: false });
+      map.setMaxBounds(cityBounds);
+      setBasemap(basemapId, true);
+    },
     setUserLocation(position, recenter) {
       if (pin) { map.removeLayer(pin); pin = null; }
       if (!position) return;
