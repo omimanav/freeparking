@@ -1,7 +1,7 @@
-import { CONFIG } from './config.js';
+import { CONFIG, PORTABLE_BASEMAP } from './config.js';
 import { fetchCity } from './sources/index.js';
 import { AREA_SOURCES } from './sources/areas.js';
-import { classify, COLORS } from './engine/status.js';
+import { classifyAt, COLORS, nzNow } from './engine/status.js';
 import { geometryOf, boundsOf, isArea, hitsAt, distanceTo } from './engine/geometry.js';
 import { startRefresh } from './engine/refresh.js';
 import { createMap } from './map/index.js';
@@ -19,14 +19,16 @@ const definitions = CONFIG.cities.flatMap(c => [
   ...(c.id === 'auckland' ? AREA_SOURCES.map(a => ({ ...a, id: `${c.id}-${a.id}`, cityId: c.id, layerId: a.id })) : []),
 ]);
 const state = new Map(definitions.map(d => [d.id, { status: 'loading', items: [], error: '', skipped: 0, updated: null }]));
-let city = CONFIG.cities[0], map = null, me = null, current = [], selected = null, pinned = false, listLimit = 100;
+let city = CONFIG.cities[0], map = null, me = null, current = [], selected = null, details = null, listLimit = 100;
 let revision = 0, rendered = '', inFlight = null, lastAttempt = null;
 initTheme($('#theme'), t => map?.setTheme(t));
 
 const basemapSelect = $('#basemap');
-basemapSelect.innerHTML = CONFIG.map.basemaps.map(b => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
-let basemapId = CONFIG.map.defaultBasemap;
-try { const saved = localStorage.getItem('parking-basemap'); if (CONFIG.map.basemaps.some(b => b.id === saved)) basemapId = saved; } catch {}
+const portable = location.protocol === 'file:' || document.documentElement.hasAttribute('data-portable-preview');
+const mapOptions = portable ? { ...CONFIG.map, defaultBasemap: PORTABLE_BASEMAP.id, basemaps: [PORTABLE_BASEMAP] } : CONFIG.map;
+basemapSelect.innerHTML = mapOptions.basemaps.map(b => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
+let basemapId = mapOptions.defaultBasemap;
+try { const saved = localStorage.getItem('parking-basemap'); if (mapOptions.basemaps.some(b => b.id === saved)) basemapId = saved; } catch {}
 basemapSelect.value = basemapId;
 basemapSelect.onchange = () => { if (!map?.setBasemap(basemapSelect.value)) return; try { localStorage.setItem('parking-basemap', basemapSelect.value); } catch {} };
 
@@ -43,20 +45,23 @@ const markCity = () => document.querySelectorAll('#cities button').forEach(b => 
 $('#cities').onclick = event => { const next = CONFIG.cities.find(c => c.id === event.target.dataset.id); if (!next) return; city = next; listLimit = 100; clearDetails(); markCity(); map?.flyTo(city.center); paint(); };
 markCity();
 
-function clearDetails() { pinned = false; selected = null; $('#tip').hidden = true; map?.setSelection(null); document.querySelectorAll('.row[aria-pressed=true]').forEach(r => r.setAttribute('aria-pressed', 'false')); }
-function showDetails(items, x, y, pin = false) {
+function clearDetails() { details = null; selected = null; $('#tip').hidden = true; map?.setSelection(null); document.querySelectorAll('.row[aria-pressed=true]').forEach(r => r.setAttribute('aria-pressed', 'false')); }
+function showDetails(items, x, y) {
   if (!items.length) { clearDetails(); return; }
-  pinned = pin;
+  details = { items, x, y };
   selected = items[0].id; map?.setSelection(selected);
   const tip = $('#tip');
+  const closeFocused = document.activeElement === tip.querySelector('[data-close-tip]');
   tip.innerHTML = `<div class="tip-heading"><span>${items.length > 1 ? `${items.length} mapped features here` : 'Parking details'}</span><button type="button" data-close-tip aria-label="Close parking details">×</button></div>` + items.map(item => {
     const point = item.geometry.type === 'Point';
-    return `<section class="tip-feature"><b>${esc(item.name)}</b><p class="feature-label"><i style="background:${item.color}" aria-hidden="true"></i>${esc(item.label)}</p><p>${esc(item.info)}</p><p class="feature-source">Source: <a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener">${esc(item.credit)}</a></p>${point ? `<a href="${esc(nativeMapsUrl([item.geometry.coordinates[1], item.geometry.coordinates[0]], item.name))}">Open in Maps</a>` : ''}</section>`;
+    const schedule = item.scheduleUrl ? ` · <a href="${esc(item.scheduleUrl)}" target="_blank" rel="noopener">Published charging hours</a>` : '';
+    return `<section class="tip-feature"><b>${esc(item.name)}</b><p class="feature-label"><i style="background:${item.color}" aria-hidden="true"></i>${esc(item.label)}</p><p>${esc(item.info)}</p><p class="feature-source">Source: <a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener">${esc(item.credit)}</a>${schedule}</p>${point ? `<a href="${esc(nativeMapsUrl([item.geometry.coordinates[1], item.geometry.coordinates[0]], item.name))}">Open in Maps</a>` : ''}</section>`;
   }).join('');
   tip.hidden = false;
   const width = tip.offsetWidth, height = tip.offsetHeight;
   tip.style.left = `${Math.max(8, Math.min(x + 14, innerWidth - width - 8))}px`;
   tip.style.top = `${Math.max(8, Math.min(y + 14, innerHeight - height - 8))}px`;
+  if (closeFocused) tip.querySelector('[data-close-tip]').focus();
 }
 $('#tip').onclick = event => { if (event.target.closest('[data-close-tip]')) clearDetails(); };
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('#tip').hidden) clearDetails(); });
@@ -64,7 +69,7 @@ function selectItem(id, keyboard = false) {
   const item = current.find(f => f.id === id); if (!item) return;
   map?.fitBounds(item.bounds);
   const rect = $('#map').getBoundingClientRect();
-  showDetails([item], rect.left + rect.width / 2, rect.top + 20, true);
+  showDetails([item], rect.left + rect.width / 2, rect.top + 20);
   document.querySelectorAll('.row').forEach(row => row.setAttribute('aria-pressed', row.dataset.id === id));
   if (keyboard) $('#tip [data-close-tip]').focus();
 }
@@ -86,7 +91,7 @@ function paintStatus() {
   const failures = relevant.filter(d => state.get(d.id).status === 'failed');
   const areas = current.filter(i => isArea(i.geometry)).length;
   const count = `${current.length - areas} locations · ${areas.toLocaleString('en-NZ')} areas`;
-  const time = lastAttempt ? `Updated ${lastAttempt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })}` : '';
+  const time = lastAttempt ? `Updated ${lastAttempt.toLocaleTimeString('en-NZ', { timeZone: 'Pacific/Auckland', hour: '2-digit', minute: '2-digit' })} NZ time` : '';
   $('#updated').textContent = `${pending.length ? `Loading ${pending.length} layers… · ` : failures.length ? `${failures.length} source(s) failed · ` : ''}${count}${time ? ' · ' + time : ''}`;
   $('#updated').title = $('#updated').textContent;
   const warnings = relevant.filter(d => state.get(d.id).skipped > 0);
@@ -102,15 +107,22 @@ function paintStatus() {
   }
 }
 function paint() {
-  const now = new Date();
+  const now = nzNow();
   current = definitions.filter(d => d.cityId === city.id && enabled.has(d.layerId)).flatMap(d => state.get(d.id).items).map(item => {
-    if (item.layerId !== 'locations') return item;
-    const status = classify(item, now);
+    if (!item.kind && item.layerId !== 'locations') return item;
+    const status = classifyAt(item, now);
     return { ...item, color: COLORS[status.color], label: status.label };
   }).sort((a, b) => a.rank - b.rank);
   const signature = `${revision}|${current.map(i => `${i.id}:${i.color}`).join(',')}`;
   if (map && signature !== rendered) { map.render(current); rendered = signature; }
-  if (selected && !current.some(i => i.id === selected)) clearDetails();
+  if (details) {
+    const previous = details.items;
+    const items = previous.map(item => current.find(i => i.id === item.id));
+    if (!items[0]) clearDetails();
+    else if (items.some((item, i) => !item || ['color', 'label', 'name', 'info', 'scheduleUrl'].some(key => item[key] !== previous[i][key]))) {
+      showDetails(items.filter(Boolean), details.x, details.y);
+    }
+  }
   paintList(); paintStatus();
 }
 function load(onlyFailed = false) {
@@ -137,15 +149,14 @@ function load(onlyFailed = false) {
 }
 initLocation($('#locate'), p => { const first = !me && p; me = p; map?.setUserLocation(p, first); paintList(); });
 startRefresh(load, paint, CONFIG.refreshMs);
-map = await createMap({ ...CONFIG.map, defaultBasemap: basemapId }, $('#map'), city.center).catch(() => null);
+map = await createMap({ ...mapOptions, defaultBasemap: basemapId }, $('#map'), city.center).catch(() => null);
 if (map) {
-  basemapSelect.disabled = false;
+  basemapSelect.disabled = mapOptions.basemaps.length < 2;
   map.setTheme(document.documentElement.dataset.theme);
   map.setUserLocation(me, Boolean(me));
   map.onPointer(({ lat, lng, x, y, tolM, activate }) => {
     if (!activate) return;
-    const hits = hitsAt(current, lat, lng, tolM);
-    if (activate || !pinned) showDetails(hits, x, y, Boolean(activate));
+    showDetails(hitsAt(current, lat, lng, tolM), x, y);
   });
   paint();
 } else { $('#map').innerHTML = '<p class="note">The map could not load. The parking list is still available.</p>'; $('#renderer').textContent = 'Map unavailable'; }

@@ -57,11 +57,13 @@
 
     <section id="colours" aria-labelledby="colours-heading">
       <h2 id="colours-heading">What the colours mean</h2>
-      <p>Area colours identify the source category. Point-marker colours are inferred from their published descriptions. Neither is a live check of permission or space availability.</p>
+      <p>Scheduled areas change colour using Auckland local time (NZST or NZDT). The map, list and open details update every minute. Point-marker colours use the published location descriptions.</p>
       <div class="about-table-wrap">
         <table class="about-table"><caption>Parking area colours</caption><thead><tr><th scope="col">Area</th><th scope="col">What it establishes</th></tr></thead><tbody>
-          <tr><th scope="row">Red: paid zone</th><td>An official AT payment-zone polygon. Rates and charging hours are not provided by this layer.</td></tr>
-          <tr><th scope="row">Orange: loading zone</th><td>An official loading-zone polygon. Details show available restriction and operating-time fields. Incomplete schedules, including “At All Other Times”, need signage context.</td></tr>
+          <tr><th scope="row">Red: paid now</th><td>Published charging hours are in effect for this payment zone.</td></tr>
+          <tr><th scope="row">Green: no charge under published hours</th><td>Published charging hours are over or have yet to begin. Check the space for other restrictions.</td></tr>
+          <tr><th scope="row">Orange: loading restriction active</th><td>The listed loading restriction is in effect. Check the signs for vehicle eligibility and time limits.</td></tr>
+          <tr><th scope="row">Grey: hours unverified or loading inactive</th><td>Open the details to see whether the schedule could be verified or the loading restriction is outside its published hours.</td></tr>
           <tr><th scope="row">Grey-blue: car-park footprint</th><td>A Council surface asset classified as Carpark and marked valid/public in the published data. This data flag does not establish parking access, fees or permitted hours.</td></tr>
         </tbody></table>
       </div>
@@ -72,8 +74,7 @@
           <tbody>
             <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-green" aria-hidden="true"></span>Free now</span></th><td>The source text indicates free parking. Confirm the signs and any access or eligibility conditions before parking.</td></tr>
             <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-blue" aria-hidden="true"></span>Time limit</span></th><td>The description mentions a limit such as P60 or P120. A time limit alone does not confirm that parking is free or open to every vehicle.</td></tr>
-            <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-red" aria-hidden="true"></span>Paid / restricted</span></th><td>The information indicates payment or a restriction. The current dataset does not provide a complete charging schedule.</td></tr>
-            <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-grey" aria-hidden="true"></span>Rules unknown</span></th><td>The description does not establish the rules clearly enough. Check the location&rsquo;s signs or official information.</td></tr>
+            <tr><th scope="row"><span class="about-key"><span class="about-dot about-dot-grey" aria-hidden="true"></span>Rules unknown</span></th><td>The description lacks clear rules or mentions payment without charging hours. Check the location&rsquo;s signs or official information.</td></tr>
           </tbody>
         </table>
       </div>
@@ -85,7 +86,8 @@
       <p>The map queries <a data-parking-source href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingService/FeatureServer/1">Auckland Transport&rsquo;s Car Parking service</a>, linked from the <a href="https://catalogue.data.govt.nz/dataset/car-parking60">data.govt.nz catalogue</a>. It includes location points, descriptions, addresses and some space counts. The published dataset is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0</a>.</p>
       <p>The app fetches parking data on opening and every <strong><span id="refresh-minutes">15</span> minutes</strong> while running. The &ldquo;Updated&rdquo; time records a fetch attempt, not when the council last checked a location. A source-failure message means that attempt did not fully succeed, and earlier data may remain visible.</p>
       <h3>Official parking prices and hours</h3>
-      <p>Visit <a href="https://at.govt.nz/driving-and-parking/find-parking/parking-in-central-auckland/open-air-car-parks">Auckland Transport: on-street and open-air parking</a> for published charging schedules, operating details and car-park information. This is an important companion to the location data shown on this map.</p>
+      <p>The map uses charging hours from the <a href="https://at.govt.nz/driving-and-parking/find-parking/parking-in-central-auckland/open-air-car-parks">AT city-centre schedule and tariff map</a> and the <a href="https://at.govt.nz/driving-and-parking/find-parking/parking-in-north-auckland/paid-parking-takapuna">AT Takapuna schedule and tariff map</a>. Payment IDs were matched to street sections on those maps using <a href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/RoadingService/FeatureServer/3">AT road centrelines</a> on 21 November 2026. The charging hours and matches are maintained in the app. See <a href="https://at.govt.nz/cityparking">AT&rsquo;s city-centre parking changes</a> for updates on overnight charging.</p>
+      <p>Holiday-sensitive hours use <a href="https://www.employment.govt.nz/leave-and-holidays/public-holidays/public-holidays-and-anniversary-dates">Employment New Zealand&rsquo;s 2026 and 2027 dates</a>, including Auckland Anniversary and observed dates. Loading-zone schedules use the <a href="https://nzta.govt.nz/driving-skills/learn-to-drive/roadcode/general-road-code/about-driving/stopping-and-parking/parking-signs">NZTA public-holiday rule</a> unless the feed expressly includes holidays or gives an all-times restriction.</p>
       <h3>Official polygon overlays currently shown</h3>
       <p>These three layers are enabled by default and can be switched off individually. Polygon rings, holes and disconnected parts are preserved. Large datasets are fetched in batches to avoid service record limits. Records without drawable geometry are omitted and reported beside the parking list; the displayed layer counts include only drawable features.</p>
       <ul class="about-source-list">
@@ -93,12 +95,13 @@
         <li><a href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingZone/FeatureServer/1">AT Loading Zones</a> &mdash; polygon areas with restriction and operating-time fields.</li>
         <li><a href="https://services1.arcgis.com/n4yPwebTjJCmXB6W/arcgis/rest/services/Park_Structure_Hard_Surface/FeatureServer/0">Auckland Council Park Structure Hard Surface</a> &mdash; car-park surface footprints among other parks assets. A footprint does not establish fees, access or parking rules.</li>
       </ul>
-<h3>Additional source not yet shown</h3>
+      <h3>Mobility parking</h3>
       <p><a href="https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/MobilityParkingPublic/FeatureServer/0">AT Mobility Parking Facilities</a> offers more structured mobility restrictions. The separate Car Parking location layer currently supplies the points.</p>
       <p>AT data is credited to Auckland Transport. Car-park footprint data is credited to <a href="https://www.arcgis.com/home/item.html?id=38e5f3e00b7d447ca57d38316877c059">Auckland Council</a>. Follow each source link for its metadata and use terms.</p>
       <h3>Base maps and credits</h3>
       <ul class="about-source-list">
         <li><strong>OpenStreetMap Streets:</strong> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</li>
+        <li><strong>Downloadable preview streets:</strong> <a href="https://versatiles.org/">VersaTiles</a> tiles with &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</li>
         <li><strong>Humanitarian:</strong> OpenStreetMap data, a style by the <a href="https://www.hotosm.org/">Humanitarian OpenStreetMap Team</a>, and tiles from <a href="https://www.openstreetmap.fr/">OpenStreetMap France</a>.</li>
         <li><strong>Terrain:</strong> OpenStreetMap and SRTM data, with map styling by <a href="https://opentopomap.org/about">OpenTopoMap</a> under <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA</a>.</li>
       </ul>
@@ -109,7 +112,7 @@
       <h2 id="limitations-heading">Important limits</h2>
       <ul class="about-source-list">
         <li><strong>Coverage is incomplete.</strong> This is not a full inventory of every public parking space or street restriction in Auckland.</li>
-        <li><strong>Rule schedules are incomplete.</strong> Location-point labels are inferred from descriptions. Loading zones have some schedule fields, but the combined sources do not provide a complete schedule of prices, permitted hours, holidays or temporary restrictions. A colour cannot confirm the rule for a particular moment.</li>
+        <li><strong>Rule schedules are incomplete.</strong> Paid areas without a reliable match and loading records with incomplete or ambiguous hours stay unverified. The map shows published charging and loading periods where available. Follow the signs for access, permit rules, temporary restrictions and the conditions at the specific space.</li>
         <li><strong>Space counts are not live occupancy.</strong> A listed capacity or availability figure does not guarantee an empty space when you arrive.</li>
         <li><strong>Published details can lag changes.</strong> Follow the signs and road markings at the location, including temporary restrictions.</li>
       </ul>

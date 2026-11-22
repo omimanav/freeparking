@@ -18,7 +18,7 @@ export default async function createOpenStreetMap(el, options, center) {
   let basemap = null;
   function setBasemap(id) {
     const definition = options.basemaps.find(b => b.id === id);
-    if (!definition) return false;
+    if (!definition?.url) return false;
     if (el.dataset.basemap === id) return true;
     const { url, name, ...tileOptions } = definition;
     const next = L.tileLayer(url, tileOptions);

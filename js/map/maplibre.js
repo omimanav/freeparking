@@ -18,10 +18,11 @@ async function load() {
 
 export default async function createMapLibre(el, options, center) {
   await load();
+  const initialBasemap = options.basemaps.find(b => b.id === options.defaultBasemap);
   const map = new window.maplibregl.Map({
     // MapLibre uses a 512px world at zoom 0; the shared contract uses Leaflet's 256px convention.
     container: el, center: lngLat(center), zoom: options.zoom - 1,
-    style: { version: 8, sources: {}, layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#f2f2f7' } }] },
+    style: initialBasemap.style || { version: 8, sources: {}, layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#f2f2f7' } }] },
     attributionControl: false, dragRotate: false, pitchWithRotate: false,
   });
   try {
@@ -54,7 +55,7 @@ export default async function createMapLibre(el, options, center) {
   const resize = new ResizeObserver(() => map.resize());
   resize.observe(el);
   const applyTheme = () => {
-    map.setPaintProperty('background', 'background-color', theme === 'dark' ? '#2c2c2e' : '#f2f2f7');
+    if (!initialBasemap.style) map.setPaintProperty('background', 'background-color', theme === 'dark' ? '#2c2c2e' : '#f2f2f7');
     if (map.getLayer('basemap')) {
       const dark = theme === 'dark' && currentBasemap === 'osm';
       map.setPaintProperty('basemap', 'raster-saturation', dark ? -0.6 : 0);
@@ -65,6 +66,11 @@ export default async function createMapLibre(el, options, center) {
     const def = options.basemaps.find(b => b.id === id);
     if (!def) return false;
     if (currentBasemap === id) return true;
+    if (def.style) {
+      currentBasemap = id;
+      el.dataset.basemap = id;
+      return true;
+    }
     if (map.getLayer('basemap')) map.removeLayer('basemap');
     if (map.getSource('basemap')) map.removeSource('basemap');
     const tiles = def.url.includes('{s}') ? ['a', 'b', 'c'].map(s => def.url.replace('{s}', s)) : [def.url];

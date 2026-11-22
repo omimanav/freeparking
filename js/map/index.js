@@ -3,7 +3,10 @@ export async function createMap(options, el, center) {
   let active = null, switching = null, segments = [], position = null, pointer = null, selected = null, pendingBounds = null;
   let theme = document.documentElement.dataset.theme || 'light', basemap = options.defaultBasemap;
   const status = document.querySelector('#renderer');
-  const mark = name => { el.dataset.renderer = name; if (status) status.textContent = name === 'maplibre' ? 'MapLibre' : 'Leaflet backup'; };
+  const mark = name => {
+    el.dataset.renderer = name;
+    if (status) status.textContent = name === 'maplibre' ? 'MapLibre' : el.dataset.basemap ? 'Leaflet backup' : 'Leaflet backup · street map unavailable';
+  };
   async function fallback() {
     const view = active?.getView?.() || { center, zoom: options.zoom };
     active?.destroy(); active = null; el.replaceChildren(); delete el.dataset.basemap;

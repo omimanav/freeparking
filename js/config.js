@@ -1,4 +1,9 @@
 // All tunables live here. Swap a city's `source` to change its data without touching anything else.
+export const PORTABLE_BASEMAP = {
+  id: 'versatiles', name: 'VersaTiles Streets',
+  style: 'https://tiles.versatiles.org/assets/styles/colorful/style.json', maxZoom: 19,
+};
+
 export const CONFIG = {
   refreshMs: 15 * 60 * 1000,
   map: {
@@ -30,8 +35,7 @@ export const CONFIG = {
       type: 'arcgis',
       url: 'https://services2.arcgis.com/JkPEgZJGxhSjYOo0/arcgis/rest/services/ParkingService/FeatureServer/1',
       // Query WGS84 GeoJSON directly; the CSV export uses NZTM grid coordinates.
-      // This dataset has no price/hours fields, so rules are read conservatively from the description text.
-      // Anything ambiguous stays grey ("rules unknown") rather than risk showing a wrong "free".
+      // Descriptions may mention payment or a time limit. The feed has no charging schedules.
       map: r => {
         if (/clos/i.test(r.STATUS || '')) return null;
         const text = `${r.SHORTDESCRIPTION || ''} ${r.LONGDESCRIPTION || ''}`;
@@ -41,7 +45,8 @@ export const CONFIG = {
         const has = v => v && v !== '0';
         return {
           name: r.SHORTDESCRIPTION || [r.STREETNUMBER, r.STREET].filter(Boolean).join(' ') || 'Car park',
-          kind: paid ? 'paid' : limit ? 'limit' : free ? 'free' : 'unknown',
+          kind: paid ? 'unknown' : limit ? 'limit' : free ? 'free' : 'unknown',
+          label: paid ? 'Payment indicated · hours unverified' : undefined,
           limitMin: limit ? +limit[1] : undefined,
           info: [r.DATATYPE, r.LONGDESCRIPTION, has(r.TOTALSPACES) && `${r.TOTALSPACES} spaces`,
             r.AVAILABLESPACES && `${r.AVAILABLESPACES} available`, has(r.MOBILITYSPACES) && `${r.MOBILITYSPACES} mobility`,
