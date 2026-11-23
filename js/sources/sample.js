@@ -1,4 +1,3 @@
-// DEMO DATA ONLY: illustrative segments, not real restrictions.
 const W = (days, from, to) => ({ days, from, to });
 const WK = [1, 2, 3, 4, 5], ALL = [1, 2, 3, 4, 5, 6, 7];
 const proto = [

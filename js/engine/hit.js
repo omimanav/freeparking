@@ -1,4 +1,3 @@
-// Map-agnostic hit testing so hover works with any map provider.
 export function distM(la1, lo1, la2, lo2) {
   const k = 111320, c = Math.cos(la1 * Math.PI / 180);
   return Math.hypot((lo2 - lo1) * k * c, (la2 - la1) * k);

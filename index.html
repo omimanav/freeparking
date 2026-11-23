@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex, nosnippet">
 <title>NZ Free Parking</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
@@ -25,9 +26,15 @@
     </div>
   </details>
 </header>
-<main>
+<main class="map-view">
   <div id="map"></div>
-  <aside id="list" aria-label="Parking features"><div id="source-status" class="source-alert" role="status" hidden></div><div id="parking-rows"></div></aside>
+  <details id="list">
+    <summary>Locations <span aria-hidden="true">⌄</span></summary>
+    <div class="locations-panel" role="region" aria-label="Parking features">
+      <div id="source-status" class="source-alert" role="status" hidden></div>
+      <div id="parking-rows"></div>
+    </div>
+  </details>
 </main>
 <footer class="map-footer">
   <details class="map-info" id="map-info">
@@ -49,6 +56,7 @@
   </details>
   <span id="renderer" role="status">Starting map&hellip;</span>
   <span class="map-data-credit"></span>
+  <a class="sponsor-link" href="https://github.com/sponsors/omimanav" target="_blank" rel="noopener" aria-label="Sponsor NZ Free Parking on GitHub (opens in a new tab)">Sponsor</a>
 </footer>
 <div id="tip" role="region" aria-label="Parking details" hidden></div>
 <script type="module" src="js/header.js"></script>

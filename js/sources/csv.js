@@ -1,4 +1,3 @@
-// CSV adapter. source: { url, map(row) -> segment fields | null, geom?(row) -> [[[lat,lng],...],...] | null }
 function parse(text) {
   const rows = []; let row = [], f = '', q = false;
   for (let i = 0; i < text.length; i++) {
@@ -14,7 +13,6 @@ function parse(text) {
   return { headers: h, rows: r.map(v => Object.fromEntries(h.map((k, i) => [k, v[i]]))) };
 }
 
-// Default geometry guess: WKT line/polygon column in lng/lat, else a lat/lng point pair.
 const wkt = s => [...s.matchAll(/\(([^()]+)\)/g)]
   .map(m => m[1].split(',').map(p => p.trim().split(/\s+/).map(Number)).map(([x, y]) => [y, x]))
   .filter(l => l.length > 1 && l.every(([la, lo]) => Math.abs(la) <= 90 && Math.abs(lo) <= 180));

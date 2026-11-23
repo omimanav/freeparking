@@ -24,7 +24,6 @@ function christchurchHours(value, holidays) {
   let days = everyDay;
   const windows = [];
   for (const part of text.split(',')) {
-    // Subsequent time ranges can share the days at the start of the entry.
     const match = /^\s*(?:(mon|tues?|wed|thu(?:rs?)?|fri|sat|sun)(?:\s*[-–]\s*(mon|tues?|wed|thu(?:rs?)?|fri|sat|sun))?\s*)?(.*?)\s*$/.exec(part);
     const [, first, last, times] = match;
     if (first) days = daysBetween(first, last);

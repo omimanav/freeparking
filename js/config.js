@@ -43,8 +43,6 @@ export const CONFIG = {
         source: {
           type: 'arcgis',
           url: aucklandLocations,
-          // Query WGS84 GeoJSON directly; the CSV export uses NZTM grid coordinates.
-          // Descriptions may mention payment or a time limit. The feed has no charging schedules.
           map: r => {
             if (/clos/i.test(r.STATUS || '')) return null;
             const text = `${r.SHORTDESCRIPTION || ''} ${r.LONGDESCRIPTION || ''}`;

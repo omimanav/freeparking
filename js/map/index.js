@@ -1,4 +1,3 @@
-// Both renderers implement the same map contract; this facade preserves state on fallback.
 export async function createMap(options, el, city) {
   let active = null, switching = null, segments = [], position = null, pointer = null, selected = null, pendingBounds = null;
   let theme = document.documentElement.dataset.theme || 'light', basemap = options.defaultBasemap;

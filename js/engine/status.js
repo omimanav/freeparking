@@ -1,7 +1,3 @@
-// Pure rules engine. Segment shape:
-// { kind:'free'|'paid'|'restricted'|'loading'|'limit', when?:[window], freeWhen?:[window], limitMin?:number }
-// window = { days:[1..7 Mon=1], from:'HH:MM', to:'HH:MM', holidays?:'include'|'exclude' }
-// An overnight window belongs to the day it starts. Use 00:00–24:00 for a full day.
 export const COLORS = { green: '#1fa24a', red: '#d93025', blue: '#1a73e8', grey: '#8e8e93', orange: '#b76a00' };
 const D = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const m = s => { const [h, n] = s.split(':'); return h * 60 + +n; };
@@ -10,8 +6,6 @@ const aucklandClock = new Intl.DateTimeFormat('en-NZ', {
   hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 });
 
-// Employment New Zealand's published dates, including observed dates and provincial anniversaries.
-// https://www.employment.govt.nz/leave-and-holidays/public-holidays/public-holidays-and-anniversary-dates
 const holidays = {
   2026: new Set(['01-01', '01-02', '02-06', '04-03', '04-06', '04-25', '04-27', '06-01', '07-10', '10-26', '12-25', '12-26', '12-28']),
   2027: new Set(['01-01', '01-02', '01-04', '02-06', '02-08', '03-26', '03-29', '04-25', '04-26', '06-07', '06-25', '10-25', '12-25', '12-26', '12-27', '12-28']),

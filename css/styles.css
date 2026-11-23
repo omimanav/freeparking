@@ -17,12 +17,17 @@ main{flex:1;display:flex;min-height:0}
 #map .leaflet-bar a,#map .leaflet-control-attribution{background:var(--bg);color:var(--fg)}
 #map .leaflet-control-attribution a{color:#0a84ff}
 #map .note{padding:24px;color:var(--mute)}
-#list{width:340px;overflow:auto;border-left:1px solid var(--line)}
+.map-view{position:relative}
+#list{position:absolute;inset:10px 10px 10px auto;z-index:2;width:min(340px,calc(100% - 20px));pointer-events:none}
+#list>summary{display:flex;align-items:center;gap:8px;width:max-content;min-height:44px;margin-left:auto;padding:6px 12px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.14);font-weight:600;cursor:pointer;list-style:none;pointer-events:auto}
+#list>summary::-webkit-details-marker{display:none}
+#list[open]>summary span{transform:rotate(180deg)}
+.locations-panel{position:absolute;inset:50px 0 auto;max-height:calc(100% - 50px);overflow:auto;overscroll-behavior:contain;background:var(--bg);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.2);pointer-events:auto}
 .row{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
 .row small{display:block;color:var(--mute)}.empty{padding:16px;color:var(--mute)}
 #tip{position:fixed;z-index:9;max-width:250px;padding:10px 12px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.25)}
 #tip a{color:#0a84ff}
-@media(max-width:700px){main{flex-direction:column}#list{width:auto;max-height:36%;border:0;border-top:1px solid var(--line)}}
+@media(max-width:700px){main{flex-direction:column}}
 
 .page-nav{display:flex;gap:4px;align-items:center}
 .page-nav a{display:inline-block;padding:6px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px}
@@ -50,18 +55,22 @@ a:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(
 .map-info-links{display:flex;flex-wrap:wrap;gap:6px 16px}
 .map-footer #renderer,.map-data-credit{white-space:nowrap;font-size:12px}
 .map-data-credit{display:flex;align-items:center;min-height:32px}
+.sponsor-link{display:inline-flex;flex:none;align-items:center;min-height:36px;padding:0 10px;border:1px solid var(--line);border-radius:8px;color:var(--link);font-weight:650;text-decoration:none;white-space:nowrap}
+.sponsor-link:hover{background:var(--card)}
 summary:focus-visible{outline:3px solid var(--link);outline-offset:2px;border-radius:4px}
 @media(min-width:701px){.map-info[data-ready=true]>summary{display:none}}
 @media(max-width:700px){
-  .map-footer{flex-wrap:nowrap;gap:12px;min-height:44px;padding:0 12px}
+  .map-footer{flex-wrap:nowrap;gap:8px;min-height:44px;padding:2px 12px}
+  .map-info{flex:1 0 auto}
   .map-info summary{display:flex;align-items:center;justify-content:space-between;gap:8px;width:max-content;min-height:44px;font-size:12px}
   .map-info-panel{position:absolute;bottom:calc(100% + 8px);left:8px;right:8px;z-index:20;max-height:min(60vh,340px);overflow:auto;overscroll-behavior:contain;display:block;padding:16px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.22)}
   .parking-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;font-size:12px}
   .map-info-note{margin:16px 0 12px;color:var(--mute);line-height:1.5}
   .map-info-links{padding-top:12px;border-top:1px solid var(--line)}
   .map-info-links a{display:flex;align-items:center;min-height:32px}
-  .map-footer #renderer{font-size:11px}
+  .map-footer #renderer{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:11px}
   .map-data-credit{min-height:44px}
+  .sponsor-link{min-height:44px}
 }
 
 .map-header{position:relative;flex:none}
@@ -130,7 +139,6 @@ button.row:hover,button.row[aria-pressed=true]{background:var(--card);color:var(
   .map-settings-panel .overlay-control>summary{justify-content:initial;min-height:44px;font-size:13px}
   .overlay-options{position:static;width:100%;max-width:none;box-shadow:none;margin-top:8px}
   .area-legend{border-right:0;border-bottom:1px solid var(--line);padding:0 0 12px;margin-bottom:12px}
-  .map-footer{gap:8px}
 }
 
 .tip-feature .feature-label{display:flex;align-items:baseline;gap:6px;color:var(--fg)}

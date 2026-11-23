@@ -1,4 +1,3 @@
-// Button only appears if the device has geolocation. Needs HTTPS (or localhost).
 export function initLocation(btn, onFix) {
   if (!('geolocation' in navigator)) return;
   btn.hidden = false;

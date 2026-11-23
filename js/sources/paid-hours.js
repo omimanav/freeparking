@@ -1,9 +1,6 @@
 const CITY_HOURS = 'https://at.govt.nz/driving-and-parking/find-parking/parking-in-central-auckland/open-air-car-parks';
 const TAKAPUNA_HOURS = 'https://at.govt.nz/driving-and-parking/find-parking/parking-in-north-auckland/paid-parking-takapuna';
 
-// Matched to the coloured on-street sections of AT's published maps using AT Road Centrelines
-// (RoadingService/FeatureServer/3) on 2026-11-21. These are payment IDs, not tariff zone numbers.
-// Only use IDs whose mapped sections could be matched to one charging schedule.
 const cityLate = new Set([
   100102, 100103, 100105, 100107, 100109, 100203, 100204, 100209, 100300, 100301,
   100302, 100304, 100306, 100307, 100308, 100310, 100314, 100400, 100402, 100403,

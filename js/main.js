@@ -10,6 +10,8 @@ import { initLocation } from './ui/location.js';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const locations = $('#list');
+const locationsToggle = locations.querySelector('summary');
 const hiddenLayers = new Set();
 try { const saved = JSON.parse(localStorage.getItem('parking-hidden-layers') || '[]'); if (Array.isArray(saved)) saved.forEach(id => hiddenLayers.add(id)); } catch {}
 const definitions = new Map(CONFIG.cities.map(c => [c.id, c.layers.map(layer => ({
@@ -71,7 +73,12 @@ function locationInCity() {
   return me && me.lng >= west && me.lng <= east && me.lat >= south && me.lat <= north ? me : null;
 }
 
-function clearDetails() { details = null; selected = null; $('#tip').hidden = true; map?.setSelection(null); document.querySelectorAll('.row[aria-pressed=true]').forEach(r => r.setAttribute('aria-pressed', 'false')); }
+function clearDetails() {
+  const tip = $('#tip');
+  if (tip.contains(document.activeElement)) locationsToggle.focus();
+  details = null; selected = null; tip.hidden = true; map?.setSelection(null);
+  document.querySelectorAll('.row[aria-pressed=true]').forEach(r => r.setAttribute('aria-pressed', 'false'));
+}
 function showDetails(items, x, y) {
   if (!items.length) { clearDetails(); return; }
   details = { items, x, y };
@@ -90,9 +97,14 @@ function showDetails(items, x, y) {
   if (closeFocused) tip.querySelector('[data-close-tip]').focus();
 }
 $('#tip').onclick = event => { if (event.target.closest('[data-close-tip]')) clearDetails(); };
-document.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('#tip').hidden) clearDetails(); });
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  if (!$('#tip').hidden) clearDetails();
+  else if (locations.open) { locations.open = false; locationsToggle.focus(); }
+});
 function selectItem(id, keyboard = false) {
   const item = current.find(f => f.id === id); if (!item) return;
+  locations.open = false;
   map?.fitBounds(item.bounds);
   const rect = $('#map').getBoundingClientRect();
   showDetails([item], rect.left + rect.width / 2, rect.top + 20);
@@ -104,8 +116,10 @@ $('#parking-rows').onclick = event => {
   if (event.target.closest('[data-more]')) { listLimit += 100; paintList(); }
 };
 $('#source-status').onclick = event => { if (event.target.closest('[data-retry]')) load(true); };
+locations.addEventListener('toggle', paintList);
 
 function paintList() {
+  if (!locations.open) return;
   const position = locationInCity();
   const rows = current.map(item => ({ item, distance: position ? distanceTo(item, position.lat, position.lng) : 0 })).sort((a, b) => a.distance - b.distance || a.item.name.localeCompare(b.item.name)).map(r => r.item);
   $('#parking-rows').innerHTML = rows.slice(0, listLimit).map(item => `<button type="button" class="row" data-id="${esc(item.id)}" aria-pressed="${item.id === selected}"><i style="background:${item.color}" aria-hidden="true"></i><span><b>${esc(item.name)}</b><small>${esc(item.label)}. ${esc(item.info)}</small></span></button>`).join('')

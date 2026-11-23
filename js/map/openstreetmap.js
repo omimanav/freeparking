@@ -32,7 +32,6 @@ export default async function createOpenStreetMap(el, options, city) {
     basemapId = id;
     const { url, name, ...tileOptions } = definition;
     const next = L.tileLayer(url, { ...tileOptions, bounds: cityBounds, noWrap: true });
-    // Apply the new zoom limits before adding tiles, so we never request unsupported zooms.
     setZoomLimit();
     map.setMaxZoom(definition.maxZoom);
     if (basemap) map.removeLayer(basemap);
@@ -46,7 +45,6 @@ export default async function createOpenStreetMap(el, options, city) {
   let selected = null;
   const style = item => ({ color: item.id === selected ? '#1765cf' : item.color, weight: item.id === selected ? 4 : isArea(item.geometry) ? 2 : 7, fillColor: item.color, fillOpacity: 0.2 });
   let pin = null;
-  // The parking list can change the map's height on small screens.
   const resize = new ResizeObserver(() => { map.invalidateSize({ pan: false }); setZoomLimit(); });
   resize.observe(el);
 

@@ -26,7 +26,7 @@ export default async function createMapKit(el, token, center) {
     onPointer(cb) {
       const f = e => {
         const c = map.convertPointOnPageToCoordinate(new DOMPoint(e.pageX, e.pageY));
-        const tolM = map.region.span.latitudeDelta * 111320 / el.clientHeight * 14; // ~14px finger/cursor tolerance
+        const tolM = map.region.span.latitudeDelta * 111320 / el.clientHeight * 14;
         cb({ lat: c.latitude, lng: c.longitude, x: e.clientX, y: e.clientY, tolM });
       };
       el.addEventListener('pointermove', f);

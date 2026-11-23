@@ -3,7 +3,6 @@ import { validGeometry } from '../engine/geometry.js';
 async function request(url, params, id, signal) {
   const encoded = new URLSearchParams(params);
   const timeout = AbortSignal.timeout(25000);
-  // Feature ID batches can exceed proxy URL limits; form POST is supported by ArcGIS and needs no CORS preflight.
   const response = await fetch(params.objectIds ? `${url}/query` : `${url}/query?${encoded}`, {
     signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
     ...(params.objectIds ? { method: 'POST', body: encoded } : {}),
@@ -29,7 +28,6 @@ export default {
       result = await request(source.url, { ...filter, returnIdsOnly: 'true' }, id, signal);
     } catch (error) {
       if (!bounds || error.arcgisCode !== 400) throw error;
-      // Some ArcGIS layers reject an extent query for IDs when it has no matches.
       const count = await request(source.url, { ...filter, returnCountOnly: 'true' }, id, signal);
       if (count.count === 0) return { items: [], downloadedCount: 0, skippedCount: 0 };
       throw error;

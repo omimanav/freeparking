@@ -1,4 +1,3 @@
-// Modes: auto (follows device) -> light -> dark.
 const KEY = 'parking-theme', mq = matchMedia('(prefers-color-scheme: dark)');
 export function initTheme(btn, onChange) {
   let mode = 'auto';

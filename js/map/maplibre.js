@@ -21,7 +21,6 @@ export default async function createMapLibre(el, options, city) {
   await load();
   const initialBasemap = options.basemaps.find(b => b.id === options.defaultBasemap);
   const map = new window.maplibregl.Map({
-    // MapLibre uses a 512px world at zoom 0; the shared contract uses Leaflet's 256px convention.
     container: el, center: lngLat(city.center), zoom: options.zoom - 1,
     maxBounds: toBounds(city.bounds), renderWorldCopies: false,
     style: initialBasemap.style || { version: 8, sources: {}, layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#f2f2f7' } }] },
