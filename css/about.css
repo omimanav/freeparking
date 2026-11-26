@@ -1,20 +1,4 @@
 .about-page { gap: 16px; line-height: 1.65; }
-.about-header, .about-footer {
-  display: flex;
-  width: min(100%, 1020px);
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 16px;
-  margin: 0 auto;
-  padding: 10px 16px;
-}
-.about-brand {
-  color: var(--fg);
-  font-weight: 750;
-  letter-spacing: -.035em;
-  text-decoration: none;
-}
-.about-header .page-nav { margin-left: auto; }
 .about-main { width: min(100%, 880px); flex: 1 0 auto; margin: 0 auto; }
 .about-intro {
   padding: clamp(20px, 5vw, 42px);
@@ -41,21 +25,13 @@
   color: var(--mute);
   font-size: clamp(16px, 2vw, 18px);
 }
-.about-map-link { gap: 8px; min-height: 44px; }
 
-.about-toc {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 8px;
-  margin: 14px 0;
-  padding: 7px 12px;
-  font-size: 14px;
-}
+.about-toc { display: grid; gap: 2px; padding: 10px; font-size: 14px; }
 .about-toc a {
   display: flex;
-  min-height: 36px;
+  min-height: 44px;
   align-items: center;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 9px;
   font-weight: 600;
   text-decoration: none;
@@ -93,20 +69,25 @@
 .about-dot-red { background: #d93025; }
 .about-dot-grey { background: #8e8e93; }
 
-.about-footer { justify-content: space-between; color: var(--mute); font-size: 12px; }
-
+.about-footer {
+  display: flex;
+  width: min(100%, 880px);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0 auto;
+  color: var(--mute);
+  font-size: 12px;
+}
+.about-dock-actions { font-size: 14px; }
+.about-toc { bottom: calc(100% + 8px); }
 @media (max-width: 600px) {
-  .about-header, .about-footer { gap: 8px; padding: 10px; }
-  .about-header .page-nav a, .about-header #theme { min-height: 44px; padding-inline: 10px; }
-  .about-toc a { min-height: 44px; }
+  .about-footer { padding-inline: 8px; }
+  .about-dock-actions { width: 100%; justify-content: space-between; gap: 4px; font-size: 13px; }
+  .about-dock-actions :is(summary, a) { padding-inline: 7px; }
   .about-content h2 { font-size: 21px; }
   .about-table th, .about-table td { padding: 8px; }
   .about-table tbody th { width: 105px; }
   .about-key { gap: 6px; }
-  .about-footer > span:first-child { display: none; }
-}
-@media (max-width: 440px) {
-  .about-header .about-brand { flex-basis: 100%; }
-  .about-header .page-nav { margin-left: 0; }
-  .about-header #theme { margin-left: auto; }
 }

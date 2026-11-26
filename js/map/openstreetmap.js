@@ -15,7 +15,8 @@ const load = () => new Promise((resolve, reject) => {
 export default async function createOpenStreetMap(el, options, city) {
   await load();
   const L = window.L;
-  const map = L.map(el, { maxBoundsViscosity: 1 });
+  const map = L.map(el, { maxBoundsViscosity: 1, zoomControl: false });
+  L.control.zoom({ position: 'bottomleft' }).addTo(map);
   let basemap = null, cityBounds = L.latLngBounds(toBounds(city.bounds));
   let basemapId = options.defaultBasemap;
   function setZoomLimit() {

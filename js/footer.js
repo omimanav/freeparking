@@ -1,24 +1,22 @@
-const details = document.querySelector('#map-info');
-const summary = details.querySelector('summary');
-const mobile = matchMedia('(max-width: 700px)');
-const syncLayout = () => {
-  details.open = !mobile.matches;
-  details.dataset.ready = 'true';
-};
-syncLayout();
-mobile.addEventListener('change', syncLayout);
-details.addEventListener('toggle', () => {
-  if (mobile.matches && details.open) {
-    document.querySelector('#tip').hidden = true;
-    document.querySelector('#map-settings').open = false;
-  }
-});
+const openPanel = () => document.querySelector('[data-dock-panel][open]');
+
 document.addEventListener('pointerdown', event => {
-  if (mobile.matches && details.open && !details.contains(event.target)) details.open = false;
+  const panel = openPanel();
+  if (panel && !panel.contains(event.target)) panel.open = false;
 });
+
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && mobile.matches && details.open) {
-    details.open = false;
-    summary.focus();
-  }
+  if (event.key !== 'Escape') return;
+  const panel = openPanel();
+  if (!panel) return;
+  const inner = panel.querySelector('details[open]');
+  const toClose = inner || panel;
+  toClose.open = false;
+  toClose.querySelector('summary').focus();
+  event.preventDefault();
+});
+
+document.querySelector('.about-toc')?.addEventListener('click', event => {
+  if (!event.target.closest('a')) return;
+  event.currentTarget.closest('details').open = false;
 });

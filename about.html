@@ -13,30 +13,12 @@
 </head>
 <body class="about-page">
 <a class="skip-link" href="#about-content">Skip to content</a>
-<header class="about-header">
-  <a class="about-brand" href="index.html"><span class="parking-mark" aria-hidden="true"></span>NZ Free Parking</a>
-  <nav class="page-nav" aria-label="Pages">
-    <a href="index.html">Map</a>
-    <a href="about.html" aria-current="page">About</a>
-  </nav>
-  <button id="theme" type="button" aria-label="Change colour theme">Auto</button>
-</header>
 <main class="about-main" id="about-content">
   <div class="about-intro">
     <p class="about-eyebrow">Auckland, Christchurch and Wellington</p>
     <h1>About this map</h1>
     <p class="about-lead">Explore published parking locations, street segments and areas, with current restrictions where the source provides a usable schedule.</p>
-    <a class="about-map-link" href="index.html">Explore the map <span aria-hidden="true">&rarr;</span></a>
   </div>
-
-  <nav class="about-toc" aria-label="On this page">
-    <a href="#coverage">Coverage</a>
-    <a href="#using-the-map">Using the map</a>
-    <a href="#colours">Colours</a>
-    <a href="#data-sources">Data sources</a>
-    <a href="#limitations">Limitations</a>
-    <a href="#location-and-preferences">Location &amp; preferences</a>
-  </nav>
 
   <div class="about-content">
     <section id="coverage" aria-labelledby="coverage-heading">
@@ -51,8 +33,8 @@
         <li><strong>Explore a location.</strong> Click or tap a parking feature to see its source details. Where mapped features overlap, their details are listed together. Open <em>Locations</em> to browse the list, then select an entry to highlight it and zoom to its boundary. Use <em>Show more</em> to see further entries.</li>
         <li><strong>Open it in Maps.</strong> Point-location details include a link to your device&rsquo;s maps service. A recorded point may not be a car park entrance. Area details do not invent a navigation destination from a polygon centre.</li>
         <li><strong>Find parking near you.</strong> Choose <em>Locate me</em> and allow location access. If you are in the selected city&rsquo;s map area, the map centres on your position and the list sorts by approximate distance. Choose the button again to stop location updates.</li>
-        <li><strong>Change the background.</strong> On mobile, open <em>Map options</em> to find the base map and theme controls. The <em>Base map</em> selector offers OpenStreetMap Streets, Humanitarian and Terrain (OpenTopoMap). These backgrounds do not change the parking information.</li>
-        <li><strong>Choose parking layers.</strong> In Map options, expand <em>Parking layers</em> to see the selected city&rsquo;s layers and record counts. Layer choices are saved per city in this browser.</li>
+        <li><strong>Change the map appearance.</strong> Open <em>Options</em> to choose a base map. The sun or moon button in the bottom controls cycles through system, light and dark modes.</li>
+        <li><strong>Choose parking layers.</strong> Under <em>Options</em>, expand <em>Parking layers</em> to see the selected city&rsquo;s layers and record counts. Layer choices are saved per city in this browser.</li>
         <li><strong>Choose a theme.</strong> The theme button cycles through Auto, Light and Dark. Auto follows your device&rsquo;s colour preference.</li>
       </ol>
     </section>
@@ -129,12 +111,26 @@
     </section>
   </div>
 </main>
-<footer class="about-footer">
-  <span>NZ Free Parking</span>
-  <span>Page reviewed <time datetime="2026-11-18">18 November 2026</time></span>
-  <a href="index.html">Back to the map</a>
-  <a class="sponsor-link" href="https://github.com/sponsors/omimanav" target="_blank" rel="noopener" aria-label="Sponsor NZ Free Parking on GitHub (opens in a new tab)">Sponsor on GitHub</a>
+<footer class="about-footer control-dock">
+  <span class="about-review">Page reviewed <time datetime="2026-11-18">18 November 2026</time></span>
+  <div class="about-dock-actions">
+    <a class="dock-link" href="index.html">Map</a>
+    <details name="dock" data-dock-panel>
+      <summary>Contents <span class="chevron" aria-hidden="true"></span></summary>
+      <nav class="about-toc dock-panel" aria-label="On this page">
+        <a href="#coverage">Coverage</a>
+        <a href="#using-the-map">Using the map</a>
+        <a href="#colours">Colours</a>
+        <a href="#data-sources">Data sources</a>
+        <a href="#limitations">Limitations</a>
+        <a href="#location-and-preferences">Location &amp; preferences</a>
+      </nav>
+    </details>
+    <button id="theme" class="theme-toggle" type="button" aria-label="Change colour theme"></button>
+    <a class="sponsor-link" href="https://github.com/sponsors/omimanav" target="_blank" rel="noopener" aria-label="Sponsor Omi Manav on GitHub (opens in a new tab)"><span aria-hidden="true">♡</span> Sponsor</a>
+  </div>
 </footer>
+<script type="module" src="js/footer.js"></script>
 <script type="module" src="js/about.js"></script>
 </body>
 </html>

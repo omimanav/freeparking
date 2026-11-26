@@ -35,7 +35,7 @@ export default async function createMapLibre(el, options, city) {
       map.on('style.load', ready); map.on('error', error);
     });
   } catch (error) { map.remove(); throw error; }
-  map.addControl(new window.maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+  map.addControl(new window.maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
   map.addControl(new window.maplibregl.AttributionControl({ compact: false }), 'bottom-right');
   map.addSource('parking', { type: 'geojson', data: empty() });
   const polygons = ['==', '$type', 'Polygon'];
@@ -54,11 +54,11 @@ export default async function createMapLibre(el, options, city) {
   const resize = new ResizeObserver(() => map.resize());
   resize.observe(el);
   const applyTheme = () => {
-    if (!initialBasemap.style) map.setPaintProperty('background', 'background-color', theme === 'dark' ? '#2c2c2e' : '#f2f2f7');
+    if (!initialBasemap.style) map.setPaintProperty('background', 'background-color', theme === 'dark' ? '#000' : '#f2f2f7');
     if (map.getLayer('basemap')) {
-      const dark = theme === 'dark' && currentBasemap === 'osm';
+      const dark = theme === 'dark';
       map.setPaintProperty('basemap', 'raster-saturation', dark ? -0.6 : 0);
-      map.setPaintProperty('basemap', 'raster-brightness-max', dark ? 0.5 : 1);
+      map.setPaintProperty('basemap', 'raster-brightness-max', dark ? 0.4 : 1);
     }
   };
   function setBasemap(id) {

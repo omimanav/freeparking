@@ -42,17 +42,18 @@ $('#overlay-options').onchange = event => {
   try { localStorage.setItem('parking-hidden-layers', JSON.stringify([...hiddenLayers])); } catch {}
   listLimit = 100; clearDetails(); paint();
 };
-$('#cities').innerHTML = CONFIG.cities.map(c => `<button data-id="${c.id}">${esc(c.name)}</button>`).join('');
+const citySelect = $('#cities');
+citySelect.replaceChildren(...CONFIG.cities.map(c => new Option(c.name, c.id)));
 function markCity() {
-  document.querySelectorAll('#cities button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === city.id));
+  citySelect.value = city.id;
   $('#overlay-options').innerHTML = '<legend>Visible parking layers</legend>' + cityLayers().map(l =>
     `<label><input type="checkbox" value="${esc(l.preference)}" ${isEnabled(l) ? 'checked' : ''}><span class="layer-swatch" style="background:${l.color}"></span><span>${esc(l.name)}</span><small data-count="${l.layerId}"></small></label>`).join('');
   const credits = city.layers.filter((layer, i) => city.layers.findIndex(l => l.credit === layer.credit) === i);
   $('.map-data-credit').innerHTML = credits.map(l =>
     `<a href="${esc(l.sourceUrl)}" aria-label="Parking data: ${esc(l.credit)}">${esc(l.shortCredit || l.credit)}</a>`).join('<span aria-hidden="true"> · </span>');
 }
-$('#cities').onclick = event => {
-  const next = CONFIG.cities.find(c => c.id === event.target.dataset.id);
+citySelect.onchange = () => {
+  const next = CONFIG.cities.find(c => c.id === citySelect.value);
   if (!next || next === city) return;
   inFlight?.controller.abort();
   inFlight = null;
@@ -79,9 +80,9 @@ function clearDetails() {
   details = null; selected = null; tip.hidden = true; map?.setSelection(null);
   document.querySelectorAll('.row[aria-pressed=true]').forEach(r => r.setAttribute('aria-pressed', 'false'));
 }
-function showDetails(items, x, y) {
+function showDetails(items) {
   if (!items.length) { clearDetails(); return; }
-  details = { items, x, y };
+  details = items;
   selected = items[0].id; map?.setSelection(selected);
   const tip = $('#tip');
   const closeFocused = document.activeElement === tip.querySelector('[data-close-tip]');
@@ -91,14 +92,16 @@ function showDetails(items, x, y) {
     return `<section class="tip-feature"><b>${esc(item.name)}</b><p class="feature-label"><i style="background:${item.color}" aria-hidden="true"></i>${esc(item.label)}</p><p>${esc(item.info)}</p><p class="feature-source">Source: <a href="${esc(item.sourceUrl)}" target="_blank" rel="noopener">${esc(item.credit)}</a>${schedule}</p>${point ? `<a href="${esc(nativeMapsUrl([item.geometry.coordinates[1], item.geometry.coordinates[0]], item.name))}">Open in Maps</a>` : ''}</section>`;
   }).join('');
   tip.hidden = false;
-  const width = tip.offsetWidth, height = tip.offsetHeight;
-  tip.style.left = `${Math.max(8, Math.min(x + 14, innerWidth - width - 8))}px`;
-  tip.style.top = `${Math.max(8, Math.min(y + 14, innerHeight - height - 8))}px`;
   if (closeFocused) tip.querySelector('[data-close-tip]').focus();
 }
 $('#tip').onclick = event => { if (event.target.closest('[data-close-tip]')) clearDetails(); };
+for (const panel of document.querySelectorAll('[data-dock-panel]')) {
+  panel.addEventListener('toggle', () => {
+    if (panel.open && details) clearDetails();
+  });
+}
 document.addEventListener('keydown', event => {
-  if (event.key !== 'Escape') return;
+  if (event.defaultPrevented || event.key !== 'Escape') return;
   if (!$('#tip').hidden) clearDetails();
   else if (locations.open) { locations.open = false; locationsToggle.focus(); }
 });
@@ -106,8 +109,7 @@ function selectItem(id, keyboard = false) {
   const item = current.find(f => f.id === id); if (!item) return;
   locations.open = false;
   map?.fitBounds(item.bounds);
-  const rect = $('#map').getBoundingClientRect();
-  showDetails([item], rect.left + rect.width / 2, rect.top + 20);
+  showDetails([item]);
   document.querySelectorAll('.row').forEach(row => row.setAttribute('aria-pressed', row.dataset.id === id));
   if (keyboard) $('#tip [data-close-tip]').focus();
 }
@@ -124,7 +126,7 @@ function paintList() {
   const rows = current.map(item => ({ item, distance: position ? distanceTo(item, position.lat, position.lng) : 0 })).sort((a, b) => a.distance - b.distance || a.item.name.localeCompare(b.item.name)).map(r => r.item);
   $('#parking-rows').innerHTML = rows.slice(0, listLimit).map(item => `<button type="button" class="row" data-id="${esc(item.id)}" aria-pressed="${item.id === selected}"><i style="background:${item.color}" aria-hidden="true"></i><span><b>${esc(item.name)}</b><small>${esc(item.label)}. ${esc(item.info)}</small></span></button>`).join('')
     + (rows.length > listLimit ? `<button type="button" class="more-rows" data-more>Show ${Math.min(100, rows.length - listLimit)} more (${rows.length - listLimit} remaining)</button>` : '')
-    || `<p class="empty">${!cityLayers().some(isEnabled) ? 'All parking layers are hidden. Enable a layer in Map options.' : 'No features loaded for the selected layers yet.'}</p>`;
+    || `<p class="empty">${!cityLayers().some(isEnabled) ? 'All parking layers are hidden. Enable a layer under Options.' : 'No features loaded for the selected layers yet.'}</p>`;
 }
 function paintStatus() {
   const relevant = cityLayers();
@@ -157,11 +159,11 @@ function paint() {
   const signature = `${revision}|${current.map(i => `${i.id}:${i.color}`).join(',')}`;
   if (map && signature !== rendered) { map.render(current); rendered = signature; }
   if (details) {
-    const previous = details.items;
+    const previous = details;
     const items = previous.map(item => current.find(i => i.id === item.id));
     if (!items[0]) clearDetails();
     else if (items.some((item, i) => !item || ['color', 'label', 'name', 'info', 'scheduleUrl'].some(key => item[key] !== previous[i][key]))) {
-      showDetails(items.filter(Boolean), details.x, details.y);
+      showDetails(items.filter(Boolean));
     }
   }
   paintList(); paintStatus();
@@ -209,9 +211,9 @@ if (map) {
   basemapSelect.disabled = mapOptions.basemaps.length < 2;
   map.setTheme(document.documentElement.dataset.theme);
   map.setUserLocation(locationInCity(), Boolean(me));
-  map.onPointer(({ lat, lng, x, y, tolM, activate }) => {
+  map.onPointer(({ lat, lng, tolM, activate }) => {
     if (!activate) return;
-    showDetails(hitsAt(current, lat, lng, tolM), x, y);
+    showDetails(hitsAt(current, lat, lng, tolM));
   });
   paint();
 } else { $('#map').innerHTML = '<p class="note">The map could not load. The parking list is still available.</p>'; $('#renderer').textContent = 'Map unavailable'; }

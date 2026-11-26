@@ -12,62 +12,62 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css">
 <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-<header class="map-header">
-  <div class="map-brand">
-    <span class="parking-mark" aria-hidden="true"></span>
-    <h1>NZ Free Parking</h1>
-  </div>
-  <nav id="cities" aria-label="City"></nav>
-  <span id="updated" role="status"></span>
-  <button id="locate" type="button" hidden>Locate me</button>
-  <details class="map-settings" id="map-settings">
-    <summary>Map options <span class="chevron" aria-hidden="true"></span></summary>
-    <div class="map-settings-panel">
-      <label class="basemap-label" for="basemap">Base map <select id="basemap" disabled></select></label>
-      <details class="overlay-control" id="overlay-control">
-        <summary>Parking layers <span class="chevron" aria-hidden="true"></span></summary>
-        <fieldset class="overlay-options" id="overlay-options"><legend>Visible parking layers</legend></fieldset>
-      </details>
-      <div class="settings-theme"><span class="settings-theme-label">Appearance</span><button id="theme" type="button" aria-label="Change colour theme">Auto</button></div>
-      <nav class="page-nav" aria-label="Pages"><a href="index.html" aria-current="page">Map</a><a href="about.html">About</a></nav>
-    </div>
-  </details>
-</header>
-<main class="map-view">
+<body class="map-page">
+<main class="map-view" aria-label="NZ Free Parking map">
   <div id="map"></div>
-  <details id="list">
-    <summary>Locations <span class="chevron" aria-hidden="true"></span></summary>
-    <div class="locations-panel" role="region" aria-label="Parking features">
-      <div id="source-status" class="source-alert" role="status" hidden></div>
-      <div id="parking-rows"></div>
-    </div>
-  </details>
+  <div id="tip" role="region" aria-label="Parking details" hidden></div>
 </main>
-<footer class="map-footer">
-  <details class="map-info" id="map-info">
-    <summary>Legend &amp; info <span class="chevron" aria-hidden="true"></span></summary>
-    <div class="map-info-panel" id="map-info-panel">
-      <ul class="parking-legend" aria-label="Parking colours">
-        <li><i style="background:#1fa24a" aria-hidden="true"></i>No charge under published rules</li>
-        <li><i style="background:#1a73e8" aria-hidden="true"></i>Time limit</li>
-        <li><i style="background:#d93025" aria-hidden="true"></i>Paid / restricted</li>
-        <li><i style="background:#8e8e93" aria-hidden="true"></i>Unverified or inactive restriction</li>
-      </ul>
-      <ul class="parking-legend area-legend" aria-label="Parking area colours">
-        <li><i style="background:#b76a00" aria-hidden="true"></i>Loading restriction active</li>
-        <li><i style="background:#687b8a" aria-hidden="true"></i>Car-park footprint</li>
-      </ul>
-      <p class="map-info-note">Scheduled zones use New Zealand local time. Check signs for other restrictions and access rules.</p>
-      <p class="map-info-links"><a href="https://www.gnu.org/licenses/gpl-3.0.html">Software licence (GPLv3)</a><a href="about.html#data-sources">Parking data and licences</a><a href="about.html">About this map</a></p>
-    </div>
-  </details>
-  <span id="renderer" role="status">Starting map&hellip;</span>
-  <span class="map-data-credit"></span>
-  <a class="sponsor-link" href="https://github.com/sponsors/omimanav" target="_blank" rel="noopener" aria-label="Sponsor NZ Free Parking on GitHub (opens in a new tab)">Sponsor</a>
+<footer class="map-dock control-dock">
+  <div class="dock-status">
+    <h1>NZ Free Parking</h1>
+    <span id="updated" role="status"></span>
+    <span id="renderer" role="status">Starting map&hellip;</span>
+    <span class="map-data-credit"></span>
+  </div>
+  <div class="dock-secondary">
+    <details class="map-settings" id="map-settings" name="dock" data-dock-panel>
+      <summary>Options <span class="chevron" aria-hidden="true"></span></summary>
+      <div class="map-settings-panel dock-panel">
+        <label class="basemap-label" for="basemap">Base map <select id="basemap" disabled></select></label>
+        <details class="overlay-control" id="overlay-control">
+          <summary>Parking layers <span class="chevron" aria-hidden="true"></span></summary>
+          <fieldset class="overlay-options" id="overlay-options"><legend>Visible parking layers</legend></fieldset>
+        </details>
+        <nav class="page-nav" aria-label="Pages"><a href="index.html" aria-current="page">Map</a><a href="about.html">About</a></nav>
+      </div>
+    </details>
+    <details class="map-info" id="map-info" name="dock" data-dock-panel>
+      <summary>Legend <span class="chevron" aria-hidden="true"></span></summary>
+      <div class="map-info-panel dock-panel" id="map-info-panel">
+        <ul class="parking-legend" aria-label="Parking colours">
+          <li><i style="background:#1fa24a" aria-hidden="true"></i>No charge under published rules</li>
+          <li><i style="background:#1a73e8" aria-hidden="true"></i>Time limit</li>
+          <li><i style="background:#d93025" aria-hidden="true"></i>Paid / restricted</li>
+          <li><i style="background:#8e8e93" aria-hidden="true"></i>Unverified or inactive restriction</li>
+        </ul>
+        <ul class="parking-legend area-legend" aria-label="Parking area colours">
+          <li><i style="background:#b76a00" aria-hidden="true"></i>Loading restriction active</li>
+          <li><i style="background:#687b8a" aria-hidden="true"></i>Car-park footprint</li>
+        </ul>
+        <p class="map-info-note">Scheduled zones use New Zealand local time. Check signs for other restrictions and access rules.</p>
+        <p class="map-info-links"><a href="https://www.gnu.org/licenses/gpl-3.0.html">Software licence (GPLv3)</a><a href="about.html#data-sources">Parking data and licences</a><a href="about.html">About this map</a></p>
+      </div>
+    </details>
+    <button id="theme" class="theme-toggle" type="button" aria-label="Change colour theme"></button>
+    <a class="sponsor-link" href="https://github.com/sponsors/omimanav" target="_blank" rel="noopener" aria-label="Sponsor Omi Manav on GitHub (opens in a new tab)"><span aria-hidden="true">♡</span> Sponsor</a>
+  </div>
+  <div class="dock-primary">
+    <label class="city-control" for="cities"><span>City</span><select id="cities"></select></label>
+    <details id="list" name="dock" data-dock-panel>
+      <summary>Locations <span class="chevron" aria-hidden="true"></span></summary>
+      <div class="locations-panel dock-panel" role="region" aria-label="Parking features">
+        <div id="source-status" class="source-alert" role="status" hidden></div>
+        <div id="parking-rows"></div>
+      </div>
+    </details>
+    <button id="locate" type="button" hidden>Locate me</button>
+  </div>
 </footer>
-<div id="tip" role="region" aria-label="Parking details" hidden></div>
-<script type="module" src="js/header.js"></script>
 <script type="module" src="js/footer.js"></script>
 <script type="module" src="js/main.js"></script>
 </body>
